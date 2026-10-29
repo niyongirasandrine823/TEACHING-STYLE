@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart School - Login</title>
+
+<style>
+/* ==================== CSS ==================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #2c3e50;
+    background: linear-gradient(135deg, #0f3d4a, #1abc9c 55%, #2c3e50);
+    background-attachment: fixed;
+    position: relative;
+    overflow-x: hidden;
+}
+.shape { position: fixed; border-radius: 50%; background: #fff; opacity: .12; pointer-events: none; }
+.s1 { width: 420px; height: 420px; top: -120px; left: -100px; }
+.s2 { width: 300px; height: 300px; bottom: -90px; right: -60px; }
+
+.wrap { position: relative; width: 100%; max-width: 440px; }
+
+/* Top row: home link + language switch */
+.toprow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.home-link { color: #fff; text-decoration: none; font-weight: bold; font-size: 14px; }
+.home-link:hover { text-decoration: underline; }
+.lang-switch { display: flex; border: 2px solid #fff; border-radius: 6px; overflow: hidden; }
+.lang-switch button { background: transparent; color: #fff; border: none; padding: 6px 12px; font-weight: bold; cursor: pointer; }
+.lang-switch button.active { background: #fff; color: #16a085; }
+
+.brand { text-align: center; color: #fff; margin-bottom: 18px; }
+.brand .logo { font-size: 44px; line-height: 1; }
+.brand h1 { margin: 6px 0 2px; font-size: 28px; }
+.brand p { opacity: .88; font-size: 14px; }
+
+.card {
+    background: rgba(255,255,255,.96);
+    border-radius: 14px;
+    padding: 26px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.28);
+}
+.card h2 { font-size: 20px; margin-bottom: 6px; }
+.card .sub { color: #5d6d7e; font-size: 14px; margin-bottom: 18px; }
+
+/* Role choice */
+.role-list { display: grid; gap: 10px; }
+.role-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 16px;
+    background: #fff;
+    border: 2px solid #d5dbdb;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: left;
+    transition: .2s;
+}
+.role-btn:hover { border-color: #1abc9c; background: #eafaf6; }
+.role-btn .ico { font-size: 30px; }
+
+/* Selected role badge */
+.chosen {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #eafaf6;
+    border: 1px solid #1abc9c;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+.link-btn { background: none; border: none; color: #16a085; font-weight: bold; cursor: pointer; font-size: 13px; }
+.link-btn:hover { text-decoration: underline; }
+
+/* Tabs */
+.tabs { display: flex; margin-bottom: 18px; border-bottom: 2px solid #ecf0f1; }
+.tab {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-weight: bold;
+    color: #7f8c8d;
+    cursor: pointer;
+    font-size: 14px;
+}
+.tab.active { color: #16a085; border-bottom-color: #1abc9c; }
+
+/* Form */
+.fg { margin-bottom: 14px; }
+.fg label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+.fg input,
+.fg select {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #cfd8dc;
+    border-radius: 8px;
+    font-size: 15px;
+    background: #fff;
+}
+
+.fg input:focus,
+.fg select:focus {
+    outline: 2px solid #1abc9c;
+    border-color: transparent;
+}
+.fg input:focus { outline: 2px solid #1abc9c; border-color: transparent; }
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 60px; }
+.pw-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #16a085; font-weight: bold; font-size: 12px; cursor: pointer; }
+
+.go { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #1abc9c; color: #fff; font-weight: bold; font-size: 16px; cursor: pointer; }
+.go:hover { background: #16a085; }
+
+.msg { margin-top: 14px; padding: 10px; border-radius: 8px; font-size: 14px; display: none; }
+.msg.ok { display: block; background: #d5f5e3; color: #1e8449; }
+.msg.err { display: block; background: #fadbd8; color: #c0392b; }
+
+.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="shape s1"></div>
+<div class="shape s2"></div>
+
+<div class="wrap">
+
+    <div class="toprow">
+        <a href="index.html" class="home-link" id="homeLink" data-i18n="home"></a>
+        <div class="lang-switch">
+            <button id="btn-rw" onclick="setLang('rw')">KIN</button>
+            <button id="btn-en" onclick="setLang('en')">ENG</button>
+        </div>
+    </div>
+
+    <div class="brand">
+        <div class="logo">🎓</div>
+        <h1>Smart School</h1>
+        <p data-i18n="slogan"></p>
+    </div>
+
+    <div class="card">
+
+        <!-- STEP 1: Hitamo uwo uri we -->
+        <div id="step1">
+            <h2 data-i18n="areYou"></h2>
+            <p class="sub" data-i18n="pickRole"></p>
+            <div class="role-list">
+                <button class="role-btn" onclick="chooseRole('student')"><span class="ico">🧑‍🎓</span><span data-i18n="student"></span></button>
+                <button class="role-btn" onclick="chooseRole('teacher')"><span class="ico">👩‍🏫</span><span data-i18n="teacher"></span></button>
+                <button class="role-btn" onclick="chooseRole('headmaster')"><span class="ico">🏫</span><span data-i18n="headmaster"></span></button>
+            </div>
+        </div>
+
+        <!-- STEP 2: Injira cyangwa kora ijambobanga -->
+        <div id="step2" class="hidden">
+            <div class="chosen">
+                <span id="chosenLabel"></span>
+                <button class="link-btn" onclick="backToRoles()" data-i18n="change"></button>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" id="tabLogin" onclick="showTab('login')" data-i18n="haveAcc"></button>
+                <button class="tab" id="tabCreate" onclick="showTab('create')" data-i18n="noAcc"></button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <div id="loginForm">
+                <p class="sub" data-i18n="writePw"></p>
+                <div class="fg">
+                    <label for="lUser" data-i18n="username"></label>
+                    <input type="text" id="lUser" autocomplete="username">
+                </div>
+                <div class="fg">
+                    <label for="lPass" data-i18n="password"></label>
+                    <div class="pw-wrap">
+                        <input type="password" id="lPass" autocomplete="current-password">
+                        <button type="button" class="pw-toggle" onclick="togglePw('lPass', this)" data-i18n="show"></button>
+                    </div>
+                </div>
+                <button class="go" onclick="doLogin()" data-i18n="loginBtn"></button>
+            </div>
+
+            <!-- CREATE PASSWORD FORM -->
+            <div id="createForm" class="hidden">
+                <p class="sub" data-i18n="createInfo"></p>
+                <div class="fg">
+    <label for="cName" data-i18n="fullName"></label>
+    <input type="text" id="cName" required>
+</div>
+
+<!-- Izina ry'ikigo: Head Master -->
+<div class="fg hidden" id="schoolNameGroup">
+    <label for="cSchool" data-i18n="schoolName"></label>
+    <input
+        type="text"
+        id="cSchool"
+        data-i18n-placeholder="schoolNamePlaceholder"
+        placeholder="Andika izina ry'ikigo"
+    >
+</div>
+
+<!-- Guhitamo ikigo: Teacher na Student -->
+<div class="fg hidden" id="schoolSelectGroup">
+    <label for="cSchoolSelect" data-i18n="chooseSchool"></label>
+    <select id="cSchoolSelect">
+        <option value="" data-i18n="selectSchoolFirst">
+            Hitamo ikigo
+        </option>
+    </select>
+</div>
+                <div class="fg">
+                    <label for="cUser" data-i18n="username"></label>
+                    <input type="text" id="cUser" autocomplete="username">
+                </div>
+                <div class="fg">
+                    <label for="cPass" data-i18n="newPassword"></label>
+                    <div class="pw-wrap">
+                        <input type="password" id="cPass" autocomplete="new-password">
+                        <button type="button" class="pw-toggle" onclick="togglePw('cPass', this)" data-i18n="show"></button>
+                    </div>
+                </div>
+                <div class="fg">
+                    <label for="cPass2" data-i18n="confirmPassword"></label>
+                    <input type="password" id="cPass2" autocomplete="new-password">
+                </div>
+                <button class="go" onclick="doCreate()" data-i18n="createBtn"></button>
+            </div>
+
+            <div class="msg" id="msg"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ==================== JAVASCRIPT ==================== */
+
+// ---------- Amagambo mu ndimi zombi ----------
+const TEXT = {
+    rw: {
+        home: "← Ahabanza", slogan: "Injira kugira ngo ukomeze.",
+        areYou: "Uri nde?", pickRole: "Hitamo uruhare rwawe kugira ngo dukomeze.",
+        student: "Umunyeshuri (Student)", teacher: "Umwarimu (Teacher)", headmaster: "Head Master",
+        change: "Hindura", haveAcc: "Mfite ijambobanga", noAcc: "Nta rya mfite",
+        writePw: "Andika izina ukoresha n'ijambobanga ryawe kugira ngo winjire.",
+        createInfo: "Kora ijambobanga ryawe ryambere, hanyuma uzajye ukoresha ryo kwinjira.",
+        username: "Izina ukoresha (username)", password: "Ijambobanga",
+        fullName: "Amazina yawe yose", newPassword: "Ijambobanga rishya",
+        schoolName: "Izina ry'ikigo",
+schoolNamePlaceholder: "Andika izina ry'ikigo",
+chooseSchool: "Hitamo ikigo wigamo cyangwa ukoreramo",
+selectSchoolFirst: "Hitamo ikigo",
+noSchools: "Nta kigo kirandikwa. Banza ubaze Head Master.",
+schoolExists: "Iri zina ry'ikigo risanzwe rikoreshwa.",
+        confirmPassword: "Subiramo ijambobanga", show: "Erekana", hide: "Hisha",
+        loginBtn: "Injira", createBtn: "Kora Ijambobanga",
+        asRole: "Winjira nk'", 
+        fillAll: "Uzuza ibisabwa byose.",
+        noUser: "Nta konti ibonetse. Kora ijambobanga mbere.",
+        wrongPw: "Ijambobanga ritari ryo.",
+        shortPw: "Ijambobanga rigomba kuba nibura inyuguti 6.",
+        mismatch: "Amajambobanga ntahura.",
+        exists: "Iri zina ryarafashwe. Hitamo irindi.",
+        created: "Ijambobanga ryakozwe neza! Ubu urashobora kwinjira.",
+        welcome: "Murakaza neza! Turakujyana...",
+        pendingLogin: "Konti yawe iracyategereje kwemezwa na Headmaster.",
+rejected: "Konti yawe ntiyemejwe. Vugana na Headmaster.",
+    },
+    en: {
+        home: "← Home", slogan: "Log in to continue.",
+        areYou: "Are you a...?", pickRole: "Choose your role to continue.",
+        student: "Student", teacher: "Teacher", headmaster: "Head Master",
+        change: "Change", haveAcc: "I have a password", noAcc: "I don't have one",
+        writePw: "Enter your username and password to log in.",
+        createInfo: "Create your first password, then use it to log in.",
+        username: "Username", password: "Password",
+        fullName: "Full name", newPassword: "New password",
+        schoolName: "School name",
+schoolNamePlaceholder: "Enter school name",
+chooseSchool: "Select your school",
+selectSchoolFirst: "Choose a school",
+noSchools: "No schools registered yet. Contact a Head Master.",
+schoolExists: "This school name is already registered.",
+        confirmPassword: "Confirm password", show: "Show", hide: "Hide",
+        loginBtn: "Login", createBtn: "Create Password",
+        asRole: "Logging in as ",
+        fillAll: "Please fill in all fields.",
+        noUser: "No account found. Please create a password first.",
+        wrongPw: "Incorrect password.",
+        shortPw: "Password must be at least 6 characters.",
+        mismatch: "Passwords do not match.",
+        exists: "That username is taken. Choose another.",
+        created: "Password created successfully! You can now log in.",
+        welcome: "Welcome! Redirecting...",
+        pendingLogin: "Your account is awaiting Headmaster approval.",
+rejected: "Your account was not approved. Contact the Headmaster.",
+    }
+};
+
+// Amapaji umuntu yoherezwa nyuma yo kwinjira
+const DASHBOARD = { student: "student.html", teacher: "teacher.html", headmaster: "headmaster.html" };
+
+let lang = "rw";
+let role = null;
+
+// ---------- Localstorage (hamwe na try/catch) ----------
+function store(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
+function load(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+function getUsers() { try { return JSON.parse(load("ss_users") || "{}"); } catch (e) { return {}; } }
+// ---------- Kubika no gusoma ibigo ----------
+function getSchools() {
+    try {
+        const schools = JSON.parse(load("ss_schools") || "[]");
+        return Array.isArray(schools) ? schools : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveSchool(name, headmasterUsername) {
+    const schools = getSchools();
+
+    const normalizedName = name.trim().toLowerCase();
+
+    const exists = schools.some(function (school) {
+        return school.name.trim().toLowerCase() === normalizedName;
+    });
+
+    if (exists) {
+        return false;
+    }
+
+    schools.push({
+        id: "school_" + Date.now(),
+        name: name.trim(),
+        headmasterUsername: headmasterUsername,
+        createdAt: new Date().toISOString()
+    });
+
+    store("ss_schools", JSON.stringify(schools));
+    return true;
+}
+
+function populateSchoolSelect() {
+    const select = document.getElementById("cSchoolSelect");
+    if (!select) return;
+
+    const schools = getSchools();
+
+    select.innerHTML = "";
+
+    const firstOption = document.createElement("option");
+    firstOption.value = "";
+    firstOption.textContent = TEXT[lang].selectSchoolFirst;
+    select.appendChild(firstOption);
+
+    schools.forEach(function (school) {
+        const option = document.createElement("option");
+        option.value = school.id;
+        option.textContent = school.name;
+        select.appendChild(option);
+    });
+
+    if (schools.length === 0) {
+        firstOption.textContent = TEXT[lang].noSchools;
+    }
+}
+
+// ---------- Ururimi ----------
+function setLang(l) {
+    lang = l;
+    store("lang", l);
+    document.documentElement.lang = l;
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+        el.textContent = TEXT[l][el.dataset.i18n];
+    });
+    document.getElementById("btn-rw").classList.toggle("active", l === "rw");
+    document.getElementById("btn-en").classList.toggle("active", l === "en");
+    document.getElementById("homeLink").href = "index.html";
+    if (role) updateChosenLabel();
+}
+
+// ---------- Guhitamo uruhare ----------
+function roleName(r) { return TEXT[lang][r]; }
+function updateChosenLabel() {
+    document.getElementById("chosenLabel").textContent = TEXT[lang].asRole + roleName(role);
+}
+function chooseRole(r) {
+    role = r;
+    const schoolNameGroup = document.getElementById("schoolNameGroup");
+const schoolSelectGroup = document.getElementById("schoolSelectGroup");
+
+schoolNameGroup.classList.toggle("hidden", role !== "headmaster");
+schoolSelectGroup.classList.toggle("hidden", role === "headmaster");
+
+if (role !== "headmaster") {
+    populateSchoolSelect();
+}
+    store("selectedRole", r);
+    updateChosenLabel();
+    document.getElementById("step1").classList.add("hidden");
+    document.getElementById("step2").classList.remove("hidden");
+    showTab("login");
+    hideMsg();
+}
+function backToRoles() {
+    role = null;
+    document.getElementById("step2").classList.add("hidden");
+    document.getElementById("step1").classList.remove("hidden");
+}
+
+// ---------- Tabs ----------
+function showTab(t) {
+    document.getElementById("loginForm").classList.toggle("hidden", t !== "login");
+    document.getElementById("createForm").classList.toggle("hidden", t !== "create");
+    document.getElementById("tabLogin").classList.toggle("active", t === "login");
+    document.getElementById("tabCreate").classList.toggle("active", t === "create");
+    hideMsg();
+}
+
+// ---------- Ubutumwa ----------
+function showMsg(key, ok) {
+    const m = document.getElementById("msg");
+    m.className = "msg " + (ok ? "ok" : "err");
+    m.textContent = TEXT[lang][key];
+}
+function hideMsg() { document.getElementById("msg").className = "msg"; }
+
+// ---------- Erekana/Hisha ijambobanga ----------
+function togglePw(id, btn) {
+    const input = document.getElementById(id);
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    btn.textContent = TEXT[lang][show ? "hide" : "show"];
+}
+
+// ---------- Hash y'ijambobanga (ntitubika ijambobanga ritarahinduwe) ----------
+async function hashPw(text) {
+    try {
+        if (window.crypto && crypto.subtle) {
+            const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+            return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+        }
+    } catch (e) {}
+    // Uburyo bworoshye niba crypto itaboneka
+    let h = 5381;
+    for (let i = 0; i < text.length; i++) { h = ((h << 5) + h) + text.charCodeAt(i); h |= 0; }
+    return "f" + h;
+}
+
+// ---------- Kora ijambobanga (account nshya) ----------
+
+async function doCreate() {
+    const name = document.getElementById("cName").value.trim();
+    const user = document.getElementById("cUser").value.trim().toLowerCase();
+    const p1 = document.getElementById("cPass").value;
+    const p2 = document.getElementById("cPass2").value;
+
+    const schoolNameInput = document.getElementById("cSchool");
+    const schoolSelect = document.getElementById("cSchoolSelect");
+
+    if (!role) return;
+
+    if (!name || !user || !p1 || !p2) {
+        return showMsg("fillAll", false);
+    }
+
+    if (p1.length < 6) {
+        return showMsg("shortPw", false);
+    }
+
+    if (p1 !== p2) {
+        return showMsg("mismatch", false);
+    }
+
+    const users = getUsers();
+    const key = role + ":" + user;
+
+    if (users[key]) {
+        return showMsg("exists", false);
+    }
+
+    let schoolId = "";
+    let schoolName = "";
+
+    // Head Master ni we wandikisha ikigo
+    if (role === "headmaster") {
+        schoolName = schoolNameInput.value.trim();
+
+        if (!schoolName) {
+            schoolNameInput.focus();
+            return showMsg("fillAll", false);
+        }
+
+        const saved = saveSchool(schoolName, user);
+
+        if (!saved) {
+            return showMsg("schoolExists", false);
+        }
+
+        const schools = getSchools();
+        const school = schools.find(function (s) {
+            return s.name.trim().toLowerCase() === schoolName.toLowerCase();
+        });
+
+        schoolId = school ? school.id : "";
+    } else {
+        // Teacher na Student bahitamo ikigo cyamaze kwandikwa
+        schoolId = schoolSelect.value;
+
+        if (!schoolId) {
+            populateSchoolSelect();
+            schoolSelect.focus();
+            return showMsg(
+                getSchools().length ? "fillAll" : "noSchools",
+                false
+            );
+        }
+
+        const school = getSchools().find(function (s) {
+            return s.id === schoolId;
+        });
+
+        if (!school) {
+            populateSchoolSelect();
+            return showMsg("noSchools", false);
+        }
+
+        schoolName = school.name;
+    }
+
+    users[key] = {
+        name: name,
+        username: user,
+        role: role,
+        schoolId: schoolId,
+        schoolName: schoolName,
+        pw: await hashPw(p1),
+        status: role === "teacher" ? "pending" : "approved"
+    };
+
+    store("ss_users", JSON.stringify(users));
+
+    showTab("login");
+
+    document.getElementById("lUser").value = user;
+    document.getElementById("lPass").value = "";
+
+    document.getElementById("cPass").value = "";
+    document.getElementById("cPass2").value = "";
+
+    if (schoolNameInput) schoolNameInput.value = "";
+
+    showMsg("created", true);
+}
+
+
+// ---------- Injira ----------
+
+async function doLogin() {
+    const user = document.getElementById("lUser").value.trim().toLowerCase();
+    const pass = document.getElementById("lPass").value;
+
+    if (!user || !pass) {
+        return showMsg("fillAll", false);
+    }
+
+    const users = getUsers();
+    const acc = users[role + ":" + user];
+
+    if (!acc) {
+        return showMsg("noUser", false);
+    }
+
+    if (acc.pw !== await hashPw(pass)) {
+        return showMsg("wrongPw", false);
+    }
+
+    // Teacher agomba kubanza kwemezwa na Headmaster
+    if (role === "teacher" && acc.status !== "approved") {
+        if (acc.status === "rejected") {
+            showMsg("rejected", false);
+        } else {
+            showMsg("pendingLogin", false);
+        }
+
+        return;
+    }
+
+   store("ss_current", JSON.stringify({
+    name: acc.name,
+    username: acc.username,
+    role: acc.role,
+    schoolId: acc.schoolId || "",
+    schoolName: acc.schoolName || ""
+}));
+    showMsg("welcome", true);
+
+    setTimeout(function () {
+        window.location.href = DASHBOARD[role];
+    }, 800);
+}
+
+
+// ---------- Gutangira: soma ururimi n'uruhare muri URL cyangwa localStorage ----------
+(function init() {
+    const params = new URLSearchParams(window.location.search);
+    const l = params.get("lang") || load("lang") || "rw";
+    setLang(l === "en" ? "en" : "rw");
+
+    const r = params.get("role") || null;
+    if (r && DASHBOARD[r]) chooseRole(r);
+})();
+</script>
+</body>
+</html>

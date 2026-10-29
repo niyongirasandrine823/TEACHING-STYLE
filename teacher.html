@@ -1,211 +1,511 @@
 <!DOCTYPE html>
 <html lang="rw">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Urwubuga rw'Mwarimu (Teacher Dashboard)</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { display: flex; background: #f4f6f9; color: #333; }
-        
-        /* Menu y'uruhande */
-        .sidebar { width: 250px; height: 100vh; background:greenyellow; color: black; padding: 20px; position: fixed; }
-        .sidebar h2 { margin-bottom: 30px; font-size: 20px; text-align: center; border-bottom: 1px solid #34495e; padding-bottom: 10px; }
-        .sidebar a { display: block; color: black; padding: 12px; text-decoration: none; margin-bottom: 5px; border-radius: 4px; cursor: pointer; }
-        .sidebar a:hover, .sidebar a.active { background: #34495e; color: white; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart School - Teacher</title>
 
-        /* Umwanya mukuru */
-        .main-content { margin-left: 250px; padding: 40px; width: calc(100% - 250px); }
-        
-        /* GUKORA OPEN YA BURI DASHBOARD UKWAYO (Tab switching) */
-        .section { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 30px; display: none; }
-        .section.active-section { display: block; } /* Icyerekanwa cyonyine */
-        
-        h3 { margin-bottom: 20px; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
+<style>
+/* ==================== CSS ==================== */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background: #f4f6f9; color: #2c3e50; }
 
-        /* Welcome Page Style */
-        .welcome-box { text-align: center; padding: 40px 20px; }
-        .welcome-box h1 { color: #2c3e50; font-size: 32px; margin-bottom: 15px; }
-        .welcome-box p { color: #7f8c8d; font-size: 18px; margin-bottom: 25px; }
-        .welcome-card { display: inline-block; background: #e8f4fd; padding: 15px 25px; border-left: 5px solid #2f80ed; border-radius: 4px; text-align: left; }
+/* ---------- Sidebar ---------- */
+.sidebar {
+    position: fixed; left: 0; top: 0;
+    width: 250px; height: 100vh;
+    background: linear-gradient(180deg, #0f3d4a, #16a085);
+    color: #fff; padding: 20px;
+    display: flex; flex-direction: column;
+}
+.sidebar h2 { text-align: center; margin-bottom: 6px; font-size: 22px; }
+.sidebar .who { text-align: center; font-size: 13px; opacity: .85; margin-bottom: 20px; word-break: break-word; }
+.sidebar button.nav {
+    width: 100%; padding: 13px 14px; margin-bottom: 8px;
+    border: none; border-radius: 8px;
+    background: rgba(255,255,255,.12); color: #fff;
+    font-size: 15px; text-align: left; cursor: pointer; transition: .25s;
+}
+.sidebar button.nav:hover { background: rgba(255,255,255,.25); }
+.sidebar button.nav.active { background: #fff; color: #16a085; font-weight: bold; }
+.sidebar .spacer { flex: 1; }
+.sidebar button.logout { background: #c0392b; }
+.sidebar button.logout:hover { background: #a93226; }
 
-        /* Amafomu n'Imbonerahamwe (Tables) */
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="number"], input[type="file"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        
-        button { background: #27ae60; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #219653; }
+.lang-switch { display: flex; border: 2px solid #fff; border-radius: 6px; overflow: hidden; margin-bottom: 14px; }
+.lang-switch button { flex: 1; background: transparent; color: #fff; border: none; padding: 6px; font-weight: bold; cursor: pointer; }
+.lang-switch button.active { background: #fff; color: #16a085; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #f2f2f2; color: #2c3e50; }
-    </style>
+/* ---------- Main ---------- */
+.main { margin-left: 250px; padding: 30px; }
+.section { display: none; background: #fff; padding: 26px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,.08); }
+.section.active { display: block; }
+.section h3 { margin-bottom: 20px; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
+
+/* Welcome */
+.welcome-box { text-align: center; padding: 30px 10px; }
+.welcome-box h1 { font-size: 30px; margin-bottom: 12px; }
+.welcome-box p.lead { color: #7f8c8d; font-size: 17px; margin-bottom: 22px; }
+.welcome-card { display: inline-block; background: #eafaf6; padding: 16px 26px; border-left: 5px solid #1abc9c; border-radius: 6px; text-align: left; }
+.welcome-card ul { margin: 10px 0 0 20px; line-height: 1.8; }
+.welcome-hint { margin-top: 26px; font-size: 14px; color: #95a5a6; }
+
+/* Forms */
+.fg { margin-bottom: 15px; }
+.fg label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+input[type="text"], input[type="number"], input[type="file"], select {
+    width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; font-size: 15px; background: #fff;
+}
+input:focus, select:focus { outline: 2px solid #1abc9c; border-color: transparent; }
+.btn { background: #27ae60; color: #fff; padding: 10px 22px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; }
+.btn:hover { opacity: .9; }
+.btn.blue { background: #2980b9; }
+.btn.orange { background: #e28743; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { border: 1px solid #e1e5e8; padding: 11px; text-align: left; }
+th { background: #f2f6f7; color: #2c3e50; }
+tr:hover td { background: #f9fcfc; }
+
+/* Lists */
+.saved { margin-top: 24px; }
+.saved h4 { margin-bottom: 8px; color: #16a085; }
+.saved ul { list-style: none; }
+.saved li { background: #f6fbfa; border: 1px solid #d5ece7; border-radius: 6px; padding: 9px 12px; margin-bottom: 6px; font-size: 14px; }
+.empty { color: #95a5a6; font-style: italic; font-size: 14px; }
+
+/* Toast */
+#toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #27ae60; color: #fff; padding: 12px 20px; border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25); font-weight: 600;
+    opacity: 0; transform: translateY(20px); transition: .3s; pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+#toast.err { background: #c0392b; }
+
+@media (max-width: 768px) {
+    .sidebar { position: relative; width: 100%; height: auto; }
+    .sidebar .spacer { display: none; }
+    .main { margin-left: 0; padding: 18px; }
+}
+</style>
 </head>
 <body>
 
-    <!-- Menu y'uruhande -->
-    <div class="sidebar">
-        <h2 onclick="openDashboard('welcome-section')" style="cursor: pointer;">teacher</h2>
-        <a onclick="openDashboard('upload-notes')" class="menu-link">notes uploading</a>
-        <a onclick="openDashboard('view-students')" class="menu-link">my students</a>
-        <a onclick="openDashboard('give-marks')" class="menu-link">marks</a>
-        <a onclick="openDashboard('attendance')" class="menu-link">Attendance</a>
+<!-- ==================== SIDEBAR ==================== -->
+<div class="sidebar">
+    <h2>🎓 Smart School</h2>
+    <div class="who" id="whoAmI"></div>
+
+    <div class="lang-switch">
+        <button id="btn-rw" onclick="setLang('rw')">KIN</button>
+        <button id="btn-en" onclick="setLang('en')">ENG</button>
     </div>
 
-    <!-- Umwanya w'Ibirimo -->
-    <div class="main-content">
+    <button class="nav active" data-page="welcome"    onclick="openSection('welcome')">🏠 <span data-i18n="navHome"></span></button>
+    <button class="nav"        data-page="upload"     onclick="openSection('upload')">📤 <span data-i18n="navNotes"></span></button>
+    <button class="nav"        data-page="students"   onclick="openSection('students')">👥 <span data-i18n="navStudents"></span></button>
+    <button class="nav"        data-page="marks"      onclick="openSection('marks')">📝 <span data-i18n="navMarks"></span></button>
+    <button class="nav"        data-page="attendance" onclick="openSection('attendance')">✅ <span data-i18n="navAtt"></span></button>
+    
+<button class="nav" data-page="myAttendance"
+    onclick="openSection('myAttendance')">
+    📋 <span>My Attendance</span>
+</button>
 
-        <!-- 0. URUPAPURO RUGARAGARA DMBERE (WELCOME TEACHER) -->
-        <div id="welcome-section" class="section active-section">
-            <div class="welcome-box">
-                <h1>Welcome, Teacher! 👋</h1>
-                <p>Ikaze ku rubuga rwawe rwo gucunga amasomo n'abanyeshuri.</p>
-                <div class="welcome-card">
-                    <strong>Ubu buryo buzagufasha:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Gushira hanze ibyigwa (Notes)</li>
-                        <li>Kureba lisiti y'abanyeshuri</li>
-                        <li>Gutanga amanota y'ibizamini</li>
-                        <li>Gukora mukwije (Attendance)</li>
-                    </ul>
-                </div>
-                <p style="margin-top: 30px; font-size: 14px; color: #95a5a6;">Hitamo igice ushaka gufungura ku menu y'uruhande.</p>
+
+    <div class="spacer"></div>
+    <button class="nav logout" onclick="logout()">🚪 <span data-i18n="logout"></span></button>
+</div>
+
+<!-- ==================== MAIN ==================== -->
+<div class="main">
+
+    <!-- WELCOME -->
+    <div id="welcome" class="section active">
+        <div class="welcome-box">
+            <h1>👋 <span data-i18n="welcome"></span> <span id="teacherName"></span>!</h1>
+            <p class="lead" data-i18n="welcomeSub"></p>
+            <div class="welcome-card">
+                <strong data-i18n="helpsYou"></strong>
+                <ul>
+                    <li data-i18n="h1"></li>
+                    <li data-i18n="h2"></li>
+                    <li data-i18n="h3"></li>
+                    <li data-i18n="h4"></li>
+                </ul>
             </div>
+            <p class="welcome-hint" data-i18n="hint"></p>
         </div>
+    </div>
 
-        <!-- 1. GUSHIRA HANZE IBYIGWA (UPLOAD NOTES) -->
-        <div id="upload-notes" class="section">
-            <h3>1. Gushira hanze Ibyigwa (Upload Notes)</h3>
-            <form onsubmit="alert('Isomo ryamaze kujyaho!'); return false;">
-                <div class="form-group">
-                    <label>Umutwe w'Isomo:</label>
-                    <input type="text" placeholder="Ugereranyije: Umwaka wa 1 - Amateka" required>
-                </div>
-                <div class="form-group">
-                    <label>Hitamo Idosiye (File - PDF, Docx):</label>
-                    <input type="file" required>
-                </div>
-                <button type="submit">Shira hanze (Upload)</button>
-            </form>
+    <!-- UPLOAD NOTES -->
+    <div id="upload" class="section">
+        <h3>📤 <span data-i18n="navNotes"></span></h3>
+        <div class="fg">
+            <label for="noteTitle" data-i18n="noteTitle"></label>
+            <input type="text" id="noteTitle" data-i18n-ph="noteTitlePh">
         </div>
+        <div class="fg">
+            <label for="noteFile" data-i18n="noteFile"></label>
+            <input type="file" id="noteFile" accept=".pdf,.doc,.docx,.ppt,.pptx">
+        </div>
+        <button class="btn" onclick="uploadNote()" data-i18n="uploadBtn"></button>
 
-        <!-- 2. ABANYESHURI BIGA ISOMO (VIEW STUDENTS) -->
-        <div id="view-students" class="section">
-            <h3>2. Abanyeshuri biga Isomo ryanjye</h3>
+        <div class="saved">
+            <h4 data-i18n="uploadedNotes"></h4>
+            <ul id="notesList"></ul>
+        </div>
+    </div>
+
+    <!-- MY STUDENTS -->
+    <div id="students" class="section">
+        <h3>👥 <span data-i18n="studentsTitle"></span></h3>
+        <div class="table-wrap">
             <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Amazina y'Umunyeshuri</th>
-                        <th>Ishuri</th>
-                        <th>Isomo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>001</td>
-                        <td>KEZA Aline</td>
-                        <td>Senior 4 MCQ</td>
-                        <td>Ikinyarwanda</td>
-                    </tr>
-                    <tr>
-                        <td>002</td>
-                        <td>MUGISHA Eric</td>
-                        <td>Senior 4 MCQ</td>
-                        <td>Ikinyarwanda</td>
-                    </tr>
-                    <tr>
-                        <td>003</td>
-                        <td>UWASE Solange</td>
-                        <td>Senior 4 MCQ</td>
-                        <td>Ikinyarwanda</td>
-                    </tr>
-                </tbody>
+                <thead><tr><th>ID</th><th data-i18n="sName"></th><th data-i18n="sClass"></th><th data-i18n="sSubject"></th></tr></thead>
+                <tbody id="studentsBody"></tbody>
             </table>
         </div>
-
-        <!-- 3. GUTANGA AMANOTA (GIVE MARKS) -->
-        <div id="give-marks" class="section">
-            <h3>3. Gutanga Amanota (Give Marks)</h3>
-            <form onsubmit="alert('Amanota yishuye neza!'); return false;">
-                <div class="form-group">
-                    <label>Hitamo Umunyeshuri:</label>
-                    <select required>
-                        <option value="">-- Hitamo --</option>
-                        <option>KEZA Aline</option>
-                        <option>MUGISHA Eric</option>
-                        <option>UWASE Solange</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Amanota / 100:</label>
-                    <input type="number" min="0" max="100" placeholder="Ugereranyije: 85" required>
-                </div>
-                <button type="submit" style="background: #2f80ed;">Bika Amanota</button>
-            </form>
-        </div>
-
-        <!-- 4. GUKORA ATTENDANCE (ATTENDANCE) -->
-        <div id="attendance" class="section">
-            <h3>4. Gukora Attendance</h3>
-            <p style="margin-bottom: 10px; font-style: italic;">Itariki y'uyu munsi: <span id="current-date"></span></p>
-            <form onsubmit="alert('Attendance yabitswe neza!'); return false;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Umunyeshuri</th>
-                            <th>Yaje (Present)</th>
-                            <th>Yatashye (Absent)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>KEZA Aline</td>
-                            <td><input type="radio" name="att-1" checked> 🟢</td>
-                            <td><input type="radio" name="att-1"> 🔴</td>
-                        </tr>
-                        <tr>
-                            <td>MUGISHA Eric</td>
-                            <td><input type="radio" name="att-2" checked> 🟢</td>
-                            <td><input type="radio" name="att-2"> 🔴</td>
-                        </tr>
-                        <tr>
-                            <td>UWASE Solange</td>
-                            <td><input type="radio" name="att-3"> 🟢</td>
-                            <td><input type="radio" name="att-3" checked> 🔴</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <br>
-                <button type="submit" style="background: #e28743;">Bika Attendance</button>
-            </form>
-        </div>
-
     </div>
 
-    <script>
-        // Kwerekana itariki y'uyu munsi muli Attendance
-        document.getElementById('current-date').innerText = new Date().toLocaleDateString('rw-RW');
+    <!-- MARKS -->
+    <div id="marks" class="section">
+        <h3>📝 <span data-i18n="marksTitle"></span></h3>
+        <div class="fg">
+            <label for="markStudent" data-i18n="pickStudent"></label>
+            <select id="markStudent"></select>
+        </div>
+        <div class="fg">
+            <label for="markValue" data-i18n="marksOf100"></label>
+            <input type="number" id="markValue" min="0" max="100" data-i18n-ph="marksPh">
+        </div>
+        <button class="btn blue" onclick="saveMark()" data-i18n="saveMark"></button>
 
-        // Funkisiyo ifungura buri gice ukwayo ikonza ibindi
-        function openDashboard(sectionId) {
-            // 1. Hisha ibice byose
-            let sections = document.querySelectorAll('.section');
-            sections.forEach(sec => sec.classList.remove('active-section'));
+        <div class="saved">
+            <h4 data-i18n="savedMarks"></h4>
+            <ul id="marksList"></ul>
+        </div>
+    </div>
 
-            // 2. Kura ibara ry'ubururu (active) kuri menu zose
-            let links = document.querySelectorAll('.menu-link');
-            links.forEach(link => link.classList.remove('active'));
+    <!-- ATTENDANCE -->
+    <div id="attendance" class="section">
+        <h3>✅ <span data-i18n="attTitle"></span></h3>
+        <p style="margin-bottom:10px; font-style:italic;"><span data-i18n="today"></span> <span id="currentDate"></span></p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th data-i18n="student"></th><th>🟢 <span data-i18n="present"></span></th><th>🔴 <span data-i18n="absent"></span></th></tr></thead>
+                <tbody id="attBody"></tbody>
+            </table>
+        </div>
+        <br>
+        <button class="btn orange" onclick="saveAttendance()" data-i18n="saveAtt"></button>
+    </div>
+    
+<!-- MY ATTENDANCE REQUEST -->
+<div id="myAttendance" class="section">
+    <h3>📋 My Attendance</h3>
 
-            // 3. Erekana igice gusa ukanzeho
-            document.getElementById(sectionId).classList.add('active-section');
+    <p>Today's date: <span id="myAttDate"></span></p>
 
-            // 4. Shyira ibara rya active kuri menu ukanzeho (niba atari kuri tittle)
-            if(event && event.currentTarget.classList.contains('menu-link')) {
-                event.currentTarget.classList.add('active');
-            }
-        }
-    </script>
+    <p>
+        Status:
+        <strong id="myAttStatus">Nta busabe bwoherejwe</strong>
+    </p>
+
+    <button
+        type="button"
+        class="btn"
+        id="requestAttendanceBtn"
+        onclick="requestMyAttendance()">
+        Request Attendance
+    </button>
+</div>
+
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==================== JAVASCRIPT ==================== */
+
+// ---------- Abanyeshuri (urugero) ----------
+const STUDENTS = [];
+
+// ---------- Amagambo mu ndimi zombi ----------
+const TEXT = {
+    rw: {
+        navHome: "Ahabanza", navNotes: "Gushira Notes hanze", navStudents: "Abanyeshuri Banjye",
+        navMarks: "Amanota", navAtt: "Attendance", logout: "Sohoka",
+        welcome: "Murakaza neza,", welcomeSub: "Ikaze ku rubuga rwawe rwo gucunga amasomo n'abanyeshuri.",
+        helpsYou: "Ubu buryo buzagufasha:",
+        h1: "Gushira hanze ibyigwa (Notes)", h2: "Kureba lisiti y'abanyeshuri",
+        h3: "Gutanga amanota y'ibizamini", h4: "Gufata Attendance",
+        hint: "Hitamo igice ushaka gufungura ku menu y'uruhande.",
+        noteTitle: "Umutwe w'Isomo:", noteTitlePh: "Urugero: Umwaka wa 1 - Amateka",
+        noteFile: "Hitamo Idosiye (PDF, Docx):", uploadBtn: "Shira hanze (Upload)",
+        uploadedNotes: "Notes zashyizwe hanze", noNotes: "Nta notes zirashyirwa hanze.",
+        noteMissing: "Andika umutwe uhitemo n'idosiye.", noteDone: "Isomo ryashyizwe hanze neza!",
+        studentsTitle: "Abanyeshuri biga Isomo ryanjye",
+        sName: "Amazina y'Umunyeshuri", sClass: "Ishuri", sSubject: "Isomo",
+        marksTitle: "Gutanga Amanota", pickStudent: "Hitamo Umunyeshuri:", choose: "-- Hitamo --",
+        marksOf100: "Amanota / 100:", marksPh: "Urugero: 85", saveMark: "Bika Amanota",
+        savedMarks: "Amanota yabitswe", noMarks: "Nta manota arabikwa.",
+        markMissing: "Hitamo umunyeshuri wandike amanota hagati ya 0 na 100.", markDone: "Amanota abitswe neza!",
+        attTitle: "Gufata Attendance", today: "Itariki y'uyu munsi:", student: "Umunyeshuri",
+        present: "Yaje", absent: "Yatashye", saveAtt: "Bika Attendance", attDone: "Attendance yabitswe neza!",
+        nowSaved: "Byabitswe"
+    },
+    en: {
+        navHome: "Home", navNotes: "Upload Notes", navStudents: "My Students",
+        navMarks: "Marks", navAtt: "Attendance", logout: "Logout",
+        welcome: "Welcome,", welcomeSub: "Welcome to your dashboard for managing lessons and students.",
+        helpsYou: "This system helps you:",
+        h1: "Upload study notes", h2: "View your students list",
+        h3: "Give exam marks", h4: "Take attendance",
+        hint: "Pick a section to open from the side menu.",
+        noteTitle: "Lesson title:", noteTitlePh: "Example: Year 1 - History",
+        noteFile: "Choose a file (PDF, Docx):", uploadBtn: "Upload",
+        uploadedNotes: "Uploaded notes", noNotes: "No notes uploaded yet.",
+        noteMissing: "Enter a title and choose a file.", noteDone: "Lesson uploaded successfully!",
+        studentsTitle: "Students taking my subject",
+        sName: "Student name", sClass: "Class", sSubject: "Subject",
+        marksTitle: "Give Marks", pickStudent: "Select a student:", choose: "-- Select --",
+        marksOf100: "Marks / 100:", marksPh: "Example: 85", saveMark: "Save Marks",
+        savedMarks: "Saved marks", noMarks: "No marks saved yet.",
+        markMissing: "Select a student and enter marks between 0 and 100.", markDone: "Marks saved successfully!",
+        attTitle: "Take Attendance", today: "Today's date:", student: "Student",
+        present: "Present", absent: "Absent", saveAtt: "Save Attendance", attDone: "Attendance saved successfully!",
+        nowSaved: "Saved"
+    }
+};
+
+let lang = "rw";
+
+function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function loadJSON(k, fallback) { try { return JSON.parse(load(k)) || fallback; } catch (e) { return fallback; } }
+
+// ---------- Kugenzura ko umwarimu yinjiye (guard) ----------
+let me = null;
+try { me = JSON.parse(load("ss_current")); } catch (e) {}
+if (!me || me.role !== "teacher") {
+    window.location.href = "login.html?role=teacher";
+}
+
+// ---------- Toast ----------
+let toastTimer;
+function toast(msg, isErr) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = (isErr ? "err " : "") + "show";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = ""; }, 2500);
+}
+
+// ---------- Ururimi ----------
+function setLang(l) {
+    lang = l;
+    store("lang", l);
+    document.documentElement.lang = l;
+    document.querySelectorAll("[data-i18n]").forEach(function (el) { el.textContent = TEXT[l][el.dataset.i18n]; });
+    document.querySelectorAll("[data-i18n-ph]").forEach(function (el) { el.placeholder = TEXT[l][el.dataset.i18nPh]; });
+    document.getElementById("btn-rw").classList.toggle("active", l === "rw");
+    document.getElementById("btn-en").classList.toggle("active", l === "en");
+    document.getElementById("currentDate").textContent = new Date().toLocaleDateString(l === "rw" ? "rw-RW" : "en-GB");
+    buildMarkSelect();
+    renderNotes();
+    renderMarks();
+}
+
+// ---------- Guhindura igice ----------
+function openSection(id) {
+    document.querySelectorAll(".section").forEach(function (s) { s.classList.remove("active"); });
+    document.getElementById(id).classList.add("active");
+    if (id === "myAttendance") {
+    renderMyAttendance();
+}
+    document.querySelectorAll(".sidebar .nav[data-page]").forEach(function (b) {
+        b.classList.toggle("active", b.dataset.page === id);
+    });
+}
+
+// ---------- Notes ----------
+function renderNotes() {
+    const list = document.getElementById("notesList");
+    const notes = loadJSON("ss_notes_" + me.username, []);
+    list.innerHTML = "";
+    if (!notes.length) { list.innerHTML = '<li class="empty">' + TEXT[lang].noNotes + "</li>"; return; }
+    notes.forEach(function (n) {
+        const li = document.createElement("li");
+        li.textContent = "📄 " + n.title + " — " + n.file + " (" + n.date + ")";
+        list.appendChild(li);
+    });
+}
+function uploadNote() {
+    const title = document.getElementById("noteTitle").value.trim();
+    const fileInput = document.getElementById("noteFile");
+    if (!title || !fileInput.files.length) return toast(TEXT[lang].noteMissing, true);
+    const notes = loadJSON("ss_notes_" + me.username, []);
+    notes.push({ title: title, file: fileInput.files[0].name, date: new Date().toLocaleDateString() });
+    store("ss_notes_" + me.username, JSON.stringify(notes));
+    document.getElementById("noteTitle").value = "";
+    fileInput.value = "";
+    renderNotes();
+    toast(TEXT[lang].noteDone);
+}
+
+// ---------- Abanyeshuri ----------
+function buildStudents() {
+    const body = document.getElementById("studentsBody");
+    body.innerHTML = "";
+    STUDENTS.forEach(function (s) {
+        const tr = document.createElement("tr");
+        [s.id, s.name, s.cls, s.subject].forEach(function (v) {
+            const td = document.createElement("td"); td.textContent = v; tr.appendChild(td);
+        });
+        body.appendChild(tr);
+    });
+}
+
+// ---------- Amanota ----------
+function buildMarkSelect() {
+    const sel = document.getElementById("markStudent");
+    const current = sel.value;
+    sel.innerHTML = '<option value="">' + TEXT[lang].choose + "</option>";
+    STUDENTS.forEach(function (s) {
+        const o = document.createElement("option"); o.value = s.name; o.textContent = s.name; sel.appendChild(o);
+    });
+    sel.value = current;
+}
+function renderMarks() {
+    const list = document.getElementById("marksList");
+    const marks = loadJSON("ss_marks", []);
+    list.innerHTML = "";
+    if (!marks.length) { list.innerHTML = '<li class="empty">' + TEXT[lang].noMarks + "</li>"; return; }
+    marks.forEach(function (m) {
+        const li = document.createElement("li");
+        li.textContent = m.student + ": " + m.value + "/100 (" + m.date + ")";
+        list.appendChild(li);
+    });
+}
+function saveMark() {
+    const student = document.getElementById("markStudent").value;
+    const val = document.getElementById("markValue").value;
+    const n = Number(val);
+    if (!student || val === "" || n < 0 || n > 100) return toast(TEXT[lang].markMissing, true);
+    const marks = loadJSON("ss_marks", []);
+    marks.push({ student: student, value: n, by: me.username, date: new Date().toLocaleDateString() });
+    store("ss_marks", JSON.stringify(marks));
+    document.getElementById("markValue").value = "";
+    renderMarks();
+    toast(TEXT[lang].markDone);
+}
+
+function requestMyAttendance() {
+    const today = new Date().getFullYear() + "-" +
+        String(new Date().getMonth() + 1).padStart(2, "0") + "-" +
+        String(new Date().getDate()).padStart(2, "0");
+
+    const requests = loadJSON("ss_teacher_attendance_requests", []);
+
+    const existing = requests.find(r =>
+        r.username === me.username && r.date === today
+    );
+
+    if (existing) {
+        toast("Wasabye attendance uyu munsi.", true);
+        renderMyAttendance();
+        return;
+    }
+
+    requests.push({
+        id: me.username + "_" + today,
+        username: me.username,
+        name: me.name || me.username,
+        date: today,
+        status: "pending",
+        requestedAt: new Date().toISOString()
+    });
+
+    store("ss_teacher_attendance_requests", JSON.stringify(requests));
+    renderMyAttendance();
+    toast("Ubusabe bwa attendance bwoherejwe!");
+}
+
+function renderMyAttendance() {
+    const now = new Date();
+    const today = now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, "0") + "-" +
+        String(now.getDate()).padStart(2, "0");
+
+    document.getElementById("myAttDate").textContent = today;
+
+    const requests = loadJSON("ss_teacher_attendance_requests", []);
+    const mine = requests.find(r =>
+        r.username === me.username && r.date === today
+    );
+
+    const status = document.getElementById("myAttStatus");
+    const button = document.getElementById("requestAttendanceBtn");
+
+    if (!mine) {
+        status.textContent = "Nta busabe bwoherejwe";
+        button.disabled = false;
+    } else {
+        status.textContent =
+            mine.status === "approved" ? "Yemejwe na Head Master" :
+            mine.status === "rejected" ? "Yanzwe na Head Master" :
+            "Itegereje Head Master";
+        button.disabled = true;
+    }
+}
+
+
+// ---------- Attendance ----------
+function buildAttendance() {
+    const body = document.getElementById("attBody");
+    body.innerHTML = "";
+    const saved = loadJSON("ss_attendance_" + new Date().toISOString().slice(0, 10), {});
+    STUDENTS.forEach(function (s) {
+        const isAbsent = saved[s.id] === "absent";
+        const tr = document.createElement("tr");
+        tr.innerHTML =
+            "<td></td>" +
+            '<td><input type="radio" name="att-' + s.id + '" value="present"' + (isAbsent ? "" : " checked") + "></td>" +
+            '<td><input type="radio" name="att-' + s.id + '" value="absent"' + (isAbsent ? " checked" : "") + "></td>";
+        tr.cells[0].textContent = s.name;
+        body.appendChild(tr);
+    });
+}
+function saveAttendance() {
+    const result = {};
+    STUDENTS.forEach(function (s) {
+        const checked = document.querySelector('input[name="att-' + s.id + '"]:checked');
+        result[s.id] = checked ? checked.value : "present";
+    });
+    store("ss_attendance_" + new Date().toISOString().slice(0, 10), JSON.stringify(result));
+    toast(TEXT[lang].attDone);
+}
+
+// ---------- Sohoka ----------
+function logout() {
+    try { localStorage.removeItem("ss_current"); } catch (e) {}
+    window.location.href = "login.html?role=teacher";
+}
+
+// ---------- Gutangira ----------
+if (me) {
+    document.getElementById("teacherName").textContent = me.name;
+    document.getElementById("whoAmI").textContent = me.name + " (@" + me.username + ")";
+    buildStudents();
+    buildAttendance();
+    setLang(load("lang") === "en" ? "en" : "rw");
+}
+</script>
 </body>
 </html>

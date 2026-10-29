@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart School - Student</title>
+
+<style>
+/* ==================== CSS ==================== */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+body { background: #f4f6f9; color: #2c3e50; }
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+    position: fixed; left: 0; top: 0;
+    width: 250px; height: 100vh;
+    background: linear-gradient(180deg, #0f3d4a, #16a085);
+    color: #fff; padding: 20px;
+    display: flex; flex-direction: column;
+}
+.sidebar h2 { text-align: center; margin-bottom: 6px; font-size: 22px; }
+.sidebar .who { text-align: center; font-size: 13px; opacity: .85; margin-bottom: 22px; word-break: break-word; }
+.sidebar button.nav {
+    width: 100%; padding: 13px 14px; margin-bottom: 8px;
+    border: none; border-radius: 8px;
+    background: rgba(255,255,255,.12); color: #fff;
+    font-size: 15px; text-align: left; cursor: pointer; transition: .25s;
+}
+.sidebar button.nav:hover { background: rgba(255,255,255,.25); }
+.sidebar button.nav.active { background: #fff; color: #16a085; font-weight: bold; }
+.sidebar .spacer { flex: 1; }
+.sidebar button.logout { background: #c0392b; }
+.sidebar button.logout:hover { background: #a93226; }
+
+.lang-switch { display: flex; border: 2px solid #fff; border-radius: 6px; overflow: hidden; margin-bottom: 14px; }
+.lang-switch button { flex: 1; background: transparent; color: #fff; border: none; padding: 6px; font-weight: bold; cursor: pointer; }
+.lang-switch button.active { background: #fff; color: #16a085; }
+
+/* ---------- Main ---------- */
+.main { margin-left: 250px; padding: 30px; }
+.page { display: none; }
+.page.active { display: block; }
+.page h1 { color: #16a085; margin-bottom: 8px; }
+.page h2 { color: #2c3e50; margin-bottom: 16px; }
+.page > p.lead { color: #5d6d7e; margin-bottom: 22px; }
+
+/* Home cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; }
+.stat {
+    background: #fff; padding: 22px; border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.08); text-align: center; cursor: pointer; transition: .25s;
+}
+.stat:hover { transform: translateY(-4px); }
+.stat .ico { font-size: 38px; margin-bottom: 8px; }
+.stat h3 { font-size: 16px; margin-bottom: 4px; }
+.stat p { font-size: 13px; color: #7f8c8d; }
+
+/* Notes */
+.note { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 3px 8px rgba(0,0,0,.08); }
+.note h3 { color: #16a085; margin-bottom: 6px; }
+.note p { margin-bottom: 14px; color: #5d6d7e; }
+.btn { background: #1abc9c; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+.btn:hover { background: #16a085; }
+.btn.blue { background: #2980b9; }
+.btn.blue:hover { background: #21618c; }
+.btn.red { background: #c0392b; }
+.btn.red:hover { background: #a93226; }
+
+/* AI */
+textarea { width: 100%; padding: 14px; border: 1px solid #cfd8dc; border-radius: 8px; resize: vertical; font-size: 15px; }
+textarea:focus { outline: 2px solid #1abc9c; border-color: transparent; }
+.ai-actions { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+#answer {
+    background: #fff; padding: 18px; border-radius: 10px; margin-top: 16px;
+    min-height: 110px; box-shadow: 0 3px 8px rgba(0,0,0,.08); line-height: 1.6; color: #5d6d7e;
+}
+.ai-note { font-size: 12px; color: #95a5a6; margin-top: 8px; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,.08); }
+th { background: #16a085; color: #fff; padding: 14px; text-align: left; }
+td { padding: 13px 14px; border-bottom: 1px solid #ecf0f1; }
+tr:nth-child(even) { background: #f8fafc; }
+tr:hover { background: #eafaf6; }
+.table-wrap { overflow-x: auto; }
+.pending { color: #d97706; font-weight: bold; }
+.submitted { color: #16a34a; font-weight: bold; }
+.grade-a { color: #16a34a; font-weight: bold; }
+.grade-b { color: #2563eb; font-weight: bold; }
+.grade-c { color: #d97706; font-weight: bold; }
+.grade-f { color: #dc2626; font-weight: bold; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+    .sidebar { position: relative; width: 100%; height: auto; }
+    .sidebar .spacer { display: none; }
+    .main { margin-left: 0; padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== SIDEBAR ==================== -->
+<div class="sidebar">
+    <h2>🎓 Smart School</h2>
+    <div class="who" id="whoAmI"></div>
+
+    <div class="lang-switch">
+        <button id="btn-rw" onclick="setLang('rw')">KIN</button>
+        <button id="btn-en" onclick="setLang('en')">ENG</button>
+    </div>
+
+    <button class="nav active" data-page="home"       onclick="showPage('home')">🏠 <span data-i18n="navHome"></span></button>
+    <button class="nav"        data-page="notes"      onclick="showPage('notes')">📚 <span data-i18n="navNotes"></span></button>
+    <button class="nav"        data-page="ai"         onclick="showPage('ai')">🤖 <span data-i18n="navAI"></span></button>
+    <button class="nav"        data-page="assessment" onclick="showPage('assessment')">📝 <span data-i18n="navAssess"></span></button>
+    <button class="nav"        data-page="marks"      onclick="showPage('marks')">📊 <span data-i18n="navMarks"></span></button>
+
+    <div class="spacer"></div>
+    <button class="nav logout" onclick="logout()">🚪 <span data-i18n="logout"></span></button>
+</div>
+
+<!-- ==================== MAIN ==================== -->
+<div class="main">
+
+    <!-- HOME -->
+    <div id="home" class="page active">
+        <h1><span data-i18n="welcome"></span> <span id="studentName"></span></h1>
+        <p class="lead" data-i18n="selectOption"></p>
+        <div class="cards">
+            <div class="stat" onclick="showPage('notes')"><div class="ico">📚</div><h3 data-i18n="navNotes"></h3><p data-i18n="descNotes"></p></div>
+            <div class="stat" onclick="showPage('ai')"><div class="ico">🤖</div><h3 data-i18n="navAI"></h3><p data-i18n="descAI"></p></div>
+            <div class="stat" onclick="showPage('assessment')"><div class="ico">📝</div><h3 data-i18n="navAssess"></h3><p data-i18n="descAssess"></p></div>
+            <div class="stat" onclick="showPage('marks')"><div class="ico">📊</div><h3 data-i18n="navMarks"></h3><p data-i18n="descMarks"></p></div>
+        </div>
+    </div>
+
+    <!-- NOTES -->
+    <div id="notes" class="page">
+        <h2 data-i18n="navNotes"></h2>
+        <div class="note">
+            <h3>Mathematics</h3>
+            <p data-i18n="dlMath"></p>
+            <button class="btn" onclick="openNote('Mathematics')" data-i18n="open"></button>
+        </div>
+        <div class="note">
+            <h3>Biology</h3>
+            <p data-i18n="dlBio"></p>
+            <button class="btn" onclick="openNote('Biology')" data-i18n="open"></button>
+        </div>
+    </div>
+
+    <!-- AI -->
+    <div id="ai" class="page">
+        <h2 data-i18n="aiTutor"></h2>
+        <textarea id="question" rows="6" data-i18n-ph="askPh"></textarea>
+        <div class="ai-actions">
+            <button class="btn red" id="speakBtn" onclick="speak()">🎤 <span data-i18n="speak"></span></button>
+            <button class="btn blue" onclick="askAI()" data-i18n="askAI"></button>
+        </div>
+        <h3 style="margin-top:22px;" data-i18n="aiResponse"></h3>
+        <div id="answer"></div>
+        <p class="ai-note" data-i18n="aiNote"></p>
+    </div>
+
+    <!-- ASSESSMENT -->
+    <div id="assessment" class="page">
+        <h2 data-i18n="navAssess"></h2>
+        <div class="table-wrap">
+            <table>
+                <tr><th data-i18n="course"></th><th data-i18n="assessment"></th><th data-i18n="dueDate"></th><th data-i18n="status"></th></tr>
+                <tr><td>Mathematics</td><td>Quiz 1</td><td>20/07/2026</td><td class="pending" data-i18n="pending"></td></tr>
+                <tr><td>Biology</td><td>Assignment</td><td>22/07/2026</td><td class="submitted" data-i18n="submitted"></td></tr>
+                <tr><td>Computer Science</td><td>Project</td><td>30/07/2026</td><td class="pending" data-i18n="pending"></td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- MARKS -->
+    <div id="marks" class="page">
+        <h2 data-i18n="marksTitle"></h2>
+        <div class="table-wrap">
+            <table>
+                <tr><th data-i18n="course"></th><th data-i18n="marks"></th><th data-i18n="grade"></th></tr>
+                <tr><td>Mathematics</td><td>85</td><td class="grade-a">A</td></tr>
+                <tr><td>Biology</td><td>78</td><td class="grade-b">B+</td></tr>
+                <tr><td>Computer Science</td><td>92</td><td class="grade-a">A+</td></tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/* ==================== JAVASCRIPT ==================== */
+
+// ---------- Amagambo mu ndimi zombi ----------
+const TEXT = {
+    rw: {
+        navHome: "Ahabanza", navNotes: "Reba Notes", navAI: "Wige ukoresheje AI",
+        navAssess: "Assessment", navMarks: "Amanota Nabonye", logout: "Sohoka",
+        welcome: "Murakaza neza,", selectOption: "Hitamo icyo ushaka ukoresheje menu yo ku ruhande.",
+        descNotes: "Fungura notes z'amasomo", descAI: "Baza AI ikwigishe",
+        descAssess: "Reba ibizamini n'imikoro", descMarks: "Reba amanota yawe",
+        dlMath: "Manura notes za Mathematics", dlBio: "Manura notes za Biology", open: "Fungura",
+        aiTutor: "Umwarimu wa AI", askPh: "Baza AI icyo ushaka...", speak: "Vuga", askAI: "Baza AI",
+        aiResponse: "Igisubizo cya AI", aiAnswerHere: "Igisubizo cya AI kizagaragara hano...",
+        aiNote: "Icyitonderwa: AI iracyari demo. Izahuzwa na serivisi nyayo ya AI nyuma.",
+        aiEmpty: "Banza wandike ikibazo cyawe.",
+        aiDemo: "Ikibazo cyawe: \"{q}\". AI nyayo izahuzwa hano vuba, ubwo uzabona igisubizo cyuzuye.",
+        noSpeech: "Telefoni cyangwa browser yawe ntishyigikira kuvuga. Gerageza Chrome.",
+        course: "Isomo", assessment: "Ikizamini", dueDate: "Itariki ntarengwa", status: "Imiterere",
+        pending: "Birategerejwe", submitted: "Byoherejwe", marksTitle: "Amanota Nabonye mu Masomo",
+        marks: "Amanota", grade: "Grade", openNote: "Gufungura notes za"
+    },
+    en: {
+        navHome: "Dashboard", navNotes: "Access Notes", navAI: "Study Using AI",
+        navAssess: "Assessment", navMarks: "Marks Obtained", logout: "Logout",
+        welcome: "Welcome,", selectOption: "Select an option from the left menu.",
+        descNotes: "Open course notes", descAI: "Ask AI to teach you",
+        descAssess: "View tests and assignments", descMarks: "See your results",
+        dlMath: "Download Mathematics Notes", dlBio: "Download Biology Notes", open: "Open",
+        aiTutor: "AI Tutor", askPh: "Ask AI anything...", speak: "Speak", askAI: "Ask AI",
+        aiResponse: "AI Response", aiAnswerHere: "AI answer will appear here...",
+        aiNote: "Note: AI is still a demo. A real AI service will be connected later.",
+        aiEmpty: "Please type your question first.",
+        aiDemo: "Your question: \"{q}\". A real AI will be connected here soon, then you will get a full answer.",
+        noSpeech: "Your browser does not support voice input. Try Chrome.",
+        course: "Course", assessment: "Assessment", dueDate: "Due Date", status: "Status",
+        pending: "Pending", submitted: "Submitted", marksTitle: "Marks Obtained in Courses",
+        marks: "Marks", grade: "Grade", openNote: "Opening notes for"
+    }
+};
+
+let lang = "rw";
+let answered = false;
+
+function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+// ---------- Kugenzura ko umunyeshuri yinjiye (guard) ----------
+let me = null;
+try { me = JSON.parse(load("ss_current")); } catch (e) {}
+if (!me || me.role !== "student") {
+    window.location.href = "login.html?role=student";
+}
+
+// ---------- Ururimi ----------
+function setLang(l) {
+    lang = l;
+    store("lang", l);
+    document.documentElement.lang = l;
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+        el.textContent = TEXT[l][el.dataset.i18n];
+    });
+    document.querySelectorAll("[data-i18n-ph]").forEach(function (el) {
+        el.placeholder = TEXT[l][el.dataset.i18nPh];
+    });
+    document.getElementById("btn-rw").classList.toggle("active", l === "rw");
+    document.getElementById("btn-en").classList.toggle("active", l === "en");
+    if (!answered) document.getElementById("answer").textContent = TEXT[l].aiAnswerHere;
+}
+
+// ---------- Guhindura paji ----------
+function showPage(id) {
+    document.querySelectorAll(".page").forEach(function (p) { p.classList.remove("active"); });
+    document.getElementById(id).classList.add("active");
+    document.querySelectorAll(".sidebar .nav[data-page]").forEach(function (b) {
+        b.classList.toggle("active", b.dataset.page === id);
+    });
+}
+
+// ---------- Notes ----------
+function openNote(subject) {
+    alert(TEXT[lang].openNote + " " + subject);
+}
+
+// ---------- AI Tutor (demo) ----------
+function askAI() {
+    const q = document.getElementById("question").value.trim();
+    const box = document.getElementById("answer");
+    if (!q) { box.textContent = TEXT[lang].aiEmpty; answered = true; return; }
+    answered = true;
+    box.textContent = TEXT[lang].aiDemo.replace("{q}", q);
+}
+
+// ---------- Kuvuga (Speech to text) ----------
+function speak() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert(TEXT[lang].noSpeech); return; }
+    const rec = new SR();
+    rec.lang = lang === "rw" ? "rw-RW" : "en-US";
+    rec.onresult = function (e) {
+        document.getElementById("question").value = e.results[0][0].transcript;
+    };
+    rec.start();
+}
+
+// ---------- Sohoka ----------
+function logout() {
+    try { localStorage.removeItem("ss_current"); } catch (e) {}
+    window.location.href = "login.html?role=student";
+}
+
+// ---------- Gutangira ----------
+if (me) {
+    document.getElementById("studentName").textContent = me.name;
+    document.getElementById("whoAmI").textContent = me.name + " (@" + me.username + ")";
+}
+setLang(load("lang") === "en" ? "en" : "rw");
+</script>
+</body>
+</html>

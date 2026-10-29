@@ -1,74 +1,299 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="rw">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Registration System</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart School</title>
 
-    <link rel="stylesheet" href="style.css">
+<style>
+/* ==================== CSS ==================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f3d4a, #1abc9c 55%, #2c3e50);
+    background-attachment: fixed;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Background shapes */
+.shape { position: fixed; border-radius: 50%; background: #fff; opacity: .12; pointer-events: none; }
+.s1 { width: 420px; height: 420px; top: -120px; left: -100px; }
+.s2 { width: 300px; height: 300px; bottom: -90px; right: -60px; }
+.s3 { width: 140px; height: 140px; top: 30%; right: 10%; }
+
+/* ---------- Language chooser (shows first) ---------- */
+#langOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #0f3d4a, #1abc9c 55%, #2c3e50);
+}
+#langOverlay.hidden { display: none; }
+.lang-box {
+    background: rgba(255,255,255,.96);
+    color: #2c3e50;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 16px;
+    padding: 34px 28px;
+    text-align: center;
+    box-shadow: 0 16px 40px rgba(0,0,0,.3);
+}
+.lang-box .big { font-size: 52px; }
+.lang-box h2 { margin: 10px 0 6px; }
+.lang-box p { color: #5d6d7e; margin-bottom: 22px; font-size: 15px; }
+.lang-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 12px;
+    border: 2px solid #1abc9c;
+    background: #fff;
+    color: #16a085;
+    font-size: 17px;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: .25s;
+}
+.lang-btn:hover { background: #1abc9c; color: #fff; }
+
+/* ---------- Top bar ---------- */
+.topbar {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 40px;
+}
+.logo { font-size: 22px; font-weight: bold; letter-spacing: .5px; }
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.lang-switch { display: flex; border: 2px solid #fff; border-radius: 6px; overflow: hidden; }
+.lang-switch button {
+    background: transparent;
+    color: #fff;
+    border: none;
+    padding: 7px 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.lang-switch button.active { background: #fff; color: #16a085; }
+.nav-login {
+    background: #fff;
+    color: #16a085;
+    padding: 9px 22px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-decoration: none;
+}
+.nav-login:hover { background: #ecf0f1; }
+
+/* ---------- Hero ---------- */
+.hero { position: relative; text-align: center; max-width: 760px; margin: 50px auto 40px; padding: 0 20px; }
+.hero h1 { font-size: 42px; line-height: 1.2; margin-bottom: 18px; }
+.hero h1 .brand { color: #f9e79f; }
+.hero p { font-size: 18px; opacity: .92; margin-bottom: 28px; line-height: 1.6; }
+.btn-main {
+    display: inline-block;
+    background: #2c3e50;
+    color: #fff;
+    padding: 14px 34px;
+    border-radius: 8px;
+    font-size: 17px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: .3s;
+}
+.btn-main:hover { background: #1a252f; transform: translateY(-2px); }
+
+/* ---------- Role cards ---------- */
+.roles { position: relative; max-width: 1000px; margin: 0 auto; padding: 20px; text-align: center; }
+.roles h2 { margin-bottom: 25px; font-size: 26px; }
+.role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 22px; }
+.role-card {
+    background: rgba(255,255,255,.95);
+    color: #2c3e50;
+    border-radius: 14px;
+    padding: 28px 22px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.25);
+    cursor: pointer;
+    transition: .3s;
+}
+.role-card:hover { transform: translateY(-6px); }
+.role-card .icon { font-size: 48px; margin-bottom: 10px; }
+.role-card h3 { margin-bottom: 10px; }
+.role-card p { font-size: 14px; color: #5d6d7e; line-height: 1.5; margin-bottom: 18px; min-height: 63px; }
+.role-card button {
+    width: 100%;
+    background: #1abc9c;
+    color: #fff;
+    border: none;
+    padding: 11px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.role-card button:hover { background: #16a085; }
+
+footer { position: relative; text-align: center; padding: 35px 20px; font-size: 13px; opacity: .8; }
+
+@media (max-width: 600px) {
+    .topbar { padding: 14px 18px; }
+    .hero h1 { font-size: 30px; }
+    .hero { margin-top: 30px; }
+    .logo { font-size: 18px; }
+}
+</style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Log In</h2>
-    <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-            <label for="loginUsername">Username</label>
-            <input type="text" id="loginUsername" placeholder="Enter username" required>
-        </div>
-
-        <div class="form-group">
-            <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter password" required>
-        </div>
-
-        <button type="submit" class="btn-submit">Log In</button>
-
-        <div class="links">
-            <a href="#">Forgot password?</a>
-            <a id="createAccountTrigger">Create account</a>
-        </div>
-    </form>
-</div>
-
-<div class="modal-overlay" id="registerModal">
-    <div class="modal-box">
-        <h3>Create Your Account</h3>
-
-        <form id="registerForm" onsubmit="handleRegister(event)">
-            <div class="form-group">
-                <label>Role</label>
-                <select id="roleSelect" required>
-                    <option value="" selected disabled>Select Role</option>
-                    <option>Teacher</option>
-                    <option>Student</option>
-                    <option>Head Teacher</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>School Name</label>
-                <input type="text" id="schoolName" required>
-            </div>
-
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" id="regUsername" required>
-            </div>
-
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="regPassword" required>
-            </div>
-
-            <button class="btn-submit" type="submit">Register</button>
-        </form>
-
-        <button class="btn-close" id="closeModal">Close</button>
+<!-- ==================== LANGUAGE CHOOSER ==================== -->
+<div id="langOverlay">
+    <div class="lang-box">
+        <div class="big">🌍</div>
+        <h2>Hitamo Ururimi / Choose Language</h2>
+        <p>Hitamo ururimi ushaka gukoresha.<br>Select your preferred language to continue.</p>
+        <button class="lang-btn" onclick="chooseLang('rw')">🇷🇼 Ikinyarwanda</button>
+        <button class="lang-btn" onclick="chooseLang('en')">🇬🇧 English</button>
     </div>
 </div>
 
-<script src="script.js"></script>
+<!-- ==================== PAGE ==================== -->
+<div class="shape s1"></div>
+<div class="shape s2"></div>
+<div class="shape s3"></div>
 
+<nav class="topbar">
+    <div class="logo">🎓 Smart School</div>
+    <div class="nav-right">
+        <div class="lang-switch">
+            <button id="btn-rw" onclick="chooseLang('rw')">KIN</button>
+            <button id="btn-en" onclick="chooseLang('en')">ENG</button>
+        </div>
+        <a href="login.html" class="nav-login" id="loginLink" data-i18n="login"></a>
+    </div>
+</nav>
+
+<section class="hero">
+    <h1><span data-i18n="welcome1"></span> <span class="brand">Smart School</span></h1>
+    <p data-i18n="tagline"></p>
+    <a href="login.html" class="btn-main" id="startLink" data-i18n="start"></a>
+</section>
+
+<section class="roles">
+    <h2 data-i18n="whoAreYou"></h2>
+    <div class="role-grid">
+        <div class="role-card" data-role="student">
+            <div class="icon">🧑‍🎓</div>
+            <h3 data-i18n="studentTitle"></h3>
+            <p data-i18n="studentDesc"></p>
+            <button data-i18n="studentBtn"></button>
+        </div>
+        <div class="role-card" data-role="teacher">
+            <div class="icon">👩‍🏫</div>
+            <h3 data-i18n="teacherTitle"></h3>
+            <p data-i18n="teacherDesc"></p>
+            <button data-i18n="teacherBtn"></button>
+        </div>
+        <div class="role-card" data-role="headmaster">
+            <div class="icon">🏫</div>
+            <h3 data-i18n="hmTitle"></h3>
+            <p data-i18n="hmDesc"></p>
+            <button data-i18n="hmBtn"></button>
+        </div>
+    </div>
+</section>
+
+<footer>© <span id="year"></span> Smart School. <span data-i18n="rights"></span></footer>
+
+<script>
+/* ==================== JAVASCRIPT ==================== */
+
+// Amagambo yose mu ndimi zombi
+const TEXT = {
+    rw: {
+        login: "Injira",
+        welcome1: "Murakaza neza kuri",
+        tagline: "Urubuga rumwe rufasha abanyeshuri, abarimu na Head Master gucunga amasomo, amanota na attendance.",
+        start: "Tangira Winjire",
+        whoAreYou: "Uri nde?",
+        studentTitle: "Umunyeshuri (Student)",
+        studentDesc: "Reba notes, wige ukoresheje AI, ukore assessment kandi ureba amanota yawe.",
+        studentBtn: "Injira nk'Umunyeshuri",
+        teacherTitle: "Umwarimu (Teacher)",
+        teacherDesc: "Shyira notes hanze, ureba abanyeshuri bawe, utange amanota ukore na attendance.",
+        teacherBtn: "Injira nk'Umwarimu",
+        hmTitle: "Head Master",
+        hmDesc: "Kurikirana attendance y'abarimu, wemeze cyangwa wange ubusabe bw'abashya.",
+        hmBtn: "Injira nka Head Master",
+        rights: "Uburenganzira bwose burabitswe."
+    },
+    en: {
+        login: "Login",
+        welcome1: "Welcome to",
+        tagline: "One platform that helps students, teachers and the Head Master manage lessons, marks and attendance.",
+        start: "Get Started",
+        whoAreYou: "Who are you?",
+        studentTitle: "Student",
+        studentDesc: "Access notes, study with AI, take assessments and view your marks.",
+        studentBtn: "Login as Student",
+        teacherTitle: "Teacher",
+        teacherDesc: "Upload notes, view your students, give marks and take attendance.",
+        teacherBtn: "Login as Teacher",
+        hmTitle: "Head Master",
+        hmDesc: "Track teachers' attendance and approve or reject new access requests.",
+        hmBtn: "Login as Head Master",
+        rights: "All rights reserved."
+    }
+};
+
+let currentLang = "rw";
+
+// Bika ururimi muri localStorage (kugira ngo login.html n'andi mapaji arubone)
+function saveLang(l) { try { localStorage.setItem("lang", l); } catch (e) {} }
+
+// Shyira ururimi rwatoranyijwe ku rupapuro rwose
+function applyLang(lang) {
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+        el.textContent = TEXT[lang][el.dataset.i18n];
+    });
+    document.getElementById("btn-rw").classList.toggle("active", lang === "rw");
+    document.getElementById("btn-en").classList.toggle("active", lang === "en");
+    document.getElementById("loginLink").href = "login.html?lang=" + lang;
+    document.getElementById("startLink").href = "login.html?lang=" + lang;
+}
+
+// Iyo umuntu ahisemo ururimi (ahise ahise ku ntangiriro cyangwa ku buto ya KIN/ENG)
+function chooseLang(lang) {
+    saveLang(lang);
+    applyLang(lang);
+    document.getElementById("langOverlay").classList.add("hidden");
+}
+
+// Iyo ukanze ku ikarita y'uruhare (student / teacher / headmaster)
+document.querySelectorAll(".role-card").forEach(function (card) {
+    card.addEventListener("click", function () {
+        const role = card.dataset.role;
+        try { localStorage.setItem("selectedRole", role); } catch (e) {}
+        window.location.href = "login.html?role=" + role + "&lang=" + currentLang;
+    });
+});
+
+document.getElementById("year").textContent = new Date().getFullYear();
+
+// Gutangira: dushyiraho Ikinyarwanda munsi y'icyo gifuniko cyo guhitamo ururimi.
+// Buri muntu winjiye abanza guhitamo ururimi.
+applyLang("rw");
+</script>
 </body>
 </html>

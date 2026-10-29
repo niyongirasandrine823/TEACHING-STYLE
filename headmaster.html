@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart School - Head Master</title>
+
+<style>
+/* ==================== CSS ==================== */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background: #f4f6f9; color: #2c3e50; }
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+    position: fixed; left: 0; top: 0;
+    width: 250px; height: 100vh;
+    background: linear-gradient(180deg, #1c2833, #2c3e50);
+    color: #fff; padding: 20px;
+    display: flex; flex-direction: column;
+}
+.sidebar h2 { text-align: center; margin-bottom: 6px; font-size: 22px; }
+.sidebar .who { text-align: center; font-size: 13px; opacity: .85; margin-bottom: 20px; word-break: break-word; }
+.sidebar button.nav {
+    width: 100%; padding: 13px 14px; margin-bottom: 8px;
+    border: none; border-radius: 8px;
+    background: rgba(255,255,255,.1); color: #fff;
+    font-size: 15px; text-align: left; cursor: pointer; transition: .25s;
+}
+.sidebar button.nav:hover { background: rgba(255,255,255,.22); }
+.sidebar button.nav.active { background: #1abc9c; color: #fff; font-weight: bold; }
+.sidebar .spacer { flex: 1; }
+.sidebar button.logout { background: #c0392b; }
+.sidebar button.logout:hover { background: #a93226; }
+.badge-count {
+    display: inline-block; min-width: 20px; padding: 1px 7px; margin-left: 6px;
+    background: #e74c3c; color: #fff; border-radius: 10px; font-size: 12px; text-align: center;
+}
+.badge-count.zero { display: none; }
+
+.lang-switch { display: flex; border: 2px solid #fff; border-radius: 6px; overflow: hidden; margin-bottom: 14px; }
+.lang-switch button { flex: 1; background: transparent; color: #fff; border: none; padding: 6px; font-weight: bold; cursor: pointer; }
+.lang-switch button.active { background: #fff; color: #2c3e50; }
+
+/* ---------- Main ---------- */
+.main { margin-left: 250px; padding: 30px; }
+.section { display: none; }
+.section.active { display: block; }
+
+header.hero {
+    background: linear-gradient(135deg, #2c3e50, #16a085);
+    color: #fff; padding: 22px; border-radius: 10px; margin-bottom: 24px; text-align: center;
+}
+header.hero h1 { font-size: 26px; margin-bottom: 4px; }
+header.hero p { opacity: .9; font-size: 14px; }
+
+.card { background: #fff; padding: 22px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,.08); margin-bottom: 24px; }
+.card h2 { color: #2c3e50; margin-bottom: 6px; font-size: 20px; }
+.card p.sub { color: #7f8c8d; font-size: 14px; margin-bottom: 8px; }
+
+/* Summary stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,.08); text-align: center; }
+.stat .num { font-size: 34px; font-weight: bold; color: #16a085; }
+.stat .lbl { font-size: 13px; color: #7f8c8d; margin-top: 2px; }
+.stat.warn .num { color: #e67e22; }
+.stat.bad .num { color: #e74c3c; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e4e8ea; }
+th { background: #34495e; color: #fff; }
+tr:hover td { background: #f8fafb; }
+
+/* Badges & buttons */
+.badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #fff; white-space: nowrap; }
+.present { background: #2ecc71; }
+.absent { background: #e74c3c; }
+.student { background: #3498db; }
+.teacher { background: #9b59b6; }
+.btn { padding: 7px 14px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px; color: #fff; }
+.btn:hover { opacity: .9; }
+.btn-approve { background: #2ecc71; }
+.btn-reject { background: #e74c3c; }
+.btn-undo { background: #7f8c8d; }
+.ok-text { color: #27ae60; font-weight: bold; }
+.no-text { color: #e74c3c; font-weight: bold; }
+.empty { color: #95a5a6; font-style: italic; padding: 14px 0; }
+
+/* Toast */
+#toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #27ae60; color: #fff; padding: 12px 20px; border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25); font-weight: 600;
+    opacity: 0; transform: translateY(20px); transition: .3s; pointer-events: none;
+}
+#toast.err { background: #c0392b; }
+#toast.show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 768px) {
+    .sidebar { position: relative; width: 100%; height: auto; }
+    .sidebar .spacer { display: none; }
+    .main { margin-left: 0; padding: 18px; }
+}
+.btn-delete {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 7px 12px;
+    margin: 3px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-delete:hover {
+    background: #b91c1c;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== SIDEBAR ==================== -->
+<div class="sidebar">
+    <h2>🎓 Smart School</h2>
+    <div class="who" id="whoAmI"></div>
+
+    <div class="lang-switch">
+        <button id="btn-rw" onclick="setLang('rw')">KIN</button>
+        <button id="btn-en" onclick="setLang('en')">ENG</button>
+    </div>
+
+    <button class="nav active" data-page="overview"   onclick="openSection('overview')">🏠 <span data-i18n="navHome"></span></button>
+    <button class="nav"
+    data-page="approvedTeachers"
+    onclick="openSection('approvedTeachers')">
+    👨‍🏫 Abarimu bemerewe
+</button>
+    <button class="nav"        data-page="attendance" onclick="openSection('attendance')">✅ <span data-i18n="navAtt"></span></button>
+    <button class="nav" data-page="teacherAttendanceRequests"
+    onclick="openSection('teacherAttendanceRequests')">
+    📋 Ubusabe bwa Attendance
+</button>
+    <button class="nav"        data-page="requests"   onclick="openSection('requests')">🔑 <span data-i18n="navReq"></span><span class="badge-count zero" id="pendingBadge">0</span></button>
+
+    <div class="spacer"></div>
+    <button class="nav logout" onclick="logout()">🚪 <span data-i18n="logout"></span></button>
+</div>
+
+<!-- ==================== MAIN ==================== -->
+<div class="main">
+
+    <header class="hero">
+        <h1>HEAD MASTER PORTAL</h1>
+        <p data-i18n="subtitle"></p>
+    </header>
+
+    <!-- OVERVIEW -->
+    <div id="overview" class="section active">
+        <h2 style="margin-bottom:14px;">👋 <span data-i18n="welcome"></span> <span id="hmName"></span></h2>
+        <div class="stats">
+            <div class="stat"><div class="num" id="stTeachers">0</div><div class="lbl" data-i18n="stTeachers"></div></div>
+            <div class="stat"><div class="num" id="stPresent">0</div><div class="lbl" data-i18n="stPresent"></div></div>
+            <div class="stat bad"><div class="num" id="stAbsent">0</div><div class="lbl" data-i18n="stAbsent"></div></div>
+            <div class="stat warn"><div class="num" id="stPending">0</div><div class="lbl" data-i18n="stPending"></div></div>
+        </div>
+        <div class="card">
+            <p class="sub" data-i18n="overviewHint"></p>
+        </div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div id="attendance" class="section">
+        <div class="card">
+            <h2>1. <span data-i18n="attTitle"></span></h2>
+            <p class="sub"><span data-i18n="today"></span> <span id="currentDate"></span></p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th data-i18n="tName"></th><th data-i18n="tSubject"></th><th data-i18n="tTime"></th><th data-i18n="tStatus"></th></tr>
+                    </thead>
+                    <tbody id="attBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- TEACHER ATTENDANCE REQUESTS -->
+<div id="teacherAttendanceRequests" class="section">
+    <div class="card">
+        <h2>📋 Ubusabe bwa Attendance y'Abarimu</h2>
+        <p class="sub">
+            Reba ubusabe bw'uyu munsi, wemeze cyangwa wange.
+        </p>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Izina ry'Umwarimu</th>
+                        <th>Itariki</th>
+                        <th>Status</th>
+                        <th>Icyemezo</th>
+                    </tr>
+                </thead>
+                <tbody id="teacherAttendanceRequestsBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+    
+<!-- APPROVED TEACHERS -->
+<div id="approvedTeachers" class="section">
+    <div class="card">
+        <h2>👨‍🏫 Abarimu bemerewe</h2>
+        <p class="sub">
+            Urutonde rw'abarimu bemerewe kwinjira muri Smart School.
+        </p>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Izina</th>
+                        <th>Username</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="approvedTeachersBody">
+                    <tr>
+                        <td colspan="3">
+                        
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+    <!-- REQUESTS -->
+    <div id="requests" class="section">
+        <div class="card">
+            <h2>2. <span data-i18n="reqTitle"></span></h2>
+            <p class="sub" data-i18n="reqSub"></p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th data-i18n="rName"></th><th data-i18n="rRole"></th><th data-i18n="rReason"></th><th data-i18n="rAction"></th></tr>
+                    </thead>
+                    <tbody id="reqBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==================== JAVASCRIPT ==================== */
+
+// ---------- Amakuru y'urugero (azasimbuzwa na Firebase nyuma) ----------
+
+
+
+function getApprovedTeachers() {
+    try {
+        const users = JSON.parse(
+            localStorage.getItem("ss_users") || "{}"
+        );
+
+        const current = JSON.parse(
+            localStorage.getItem("ss_current") || "null"
+        );
+
+        if (!current || current.role !== "headmaster") {
+            return [];
+        }
+
+        // Gushyigikira amakuru abitswe nka array cyangwa object
+        const entries = Array.isArray(users)
+            ? users.map((user, index) => [
+                String((user && (user.username || user.id)) || index),
+                user
+            ])
+            : Object.entries(users || {});
+
+        return entries
+            .filter(([key, user]) =>
+                user &&
+                String(user.role || "").trim().toLowerCase() === "teacher" &&
+                String(user.status || "").trim().toLowerCase() === "approved" &&
+                user.schoolId === current.schoolId &&
+                Boolean(current.schoolId)
+            )
+            .map(([key, user]) => ({
+                id: key,
+                name: user.name || user.username || "Umwarimu",
+                username: user.username || key,
+                subject: user.subject || "Ntiratangazwa",
+                schoolId: user.schoolId || ""
+            }));
+    } catch (error) {
+        console.error("Ikosa mu gusoma abarimu:", error);
+        return [];
+    }
+}
+
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (char) {
+        const entities = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        };
+
+        return entities[char];
+    });
+}
+
+function renderApprovedTeachers() {
+    const body = document.getElementById("approvedTeachersBody");
+    if (!body) return;
+
+    const teachers = getApprovedTeachers();
+
+    if (teachers.length === 0) {
+        body.innerHTML = `
+            <tr>
+                <td colspan="3" class="empty">
+                    Nta barimu bemerewe baraboneka.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    body.innerHTML = teachers.map(teacher => `
+        <tr>
+            <td>${escapeHtml(teacher.name)}</td>
+            <td>${escapeHtml(teacher.username)}</td>
+            <td><span class="ok-text">✓ Byemejwe</span></td>
+        </tr>
+    `).join("");
+}
+
+const TEACHERS = getApprovedTeachers();
+const DEFAULT_REQUESTS = [];
+
+// ---------- Amagambo mu ndimi zombi ----------
+const TEXT = {
+    rw: {
+        navHome: "Ahabanza", navAtt: "Attendance y'Abarimu", navReq: "Ubusabe bwo Kwinjira", logout: "Sohoka",
+        subtitle: "Gucunga Attendance y'Abarimu n'Uruhushya rwo Kwinjira mu Ikigo",
+        welcome: "Murakaza neza,", overviewHint: "Hitamo igice ushaka ku menu y'uruhande, cyangwa urebe incamake hejuru.",
+        stTeachers: "Abarimu bose", stPresent: "Abaje uyu munsi", stAbsent: "Abatagaragaye", stPending: "Ubusabe butegereje",
+        attTitle: "Attendance y'Abarimu", today: "Itariki y'uyu munsi:",
+        tName: "Izina ry'Umwarimu", tSubject: "Isomo Yigisha", tTime: "Isaha Yinjiriye", tStatus: "Imiterere",
+        presentLbl: "Yaje (Present)", absentLbl: "Ntabwo Yaje (Absent)",
+        reqTitle: "Ubusabe bw'Abashaka Kwinjira mu Ikigo",
+        reqSub: "Reba abanyeshuri n'abarimu bashya basaba kwinjira muri gahunda y'ikigo.",
+        rName: "Izina ry'Usaba", rRole: "Icyo Asaba", rReason: "Impamvu / Ishami", rAction: "Icyemezo",
+        roleStudent: "Umunyeshuri", roleTeacher: "Umwarimu",
+        approve: "Emeza", reject: "Anga", undo: "Subiza inyuma",
+        approved: "✓ Byemejwe", rejected: "✕ Byanzwe",
+        msgApproved: "Uruhushya rwatanzwe neza!", msgRejected: "Ubusabe bwanzwe.", msgUndo: "Icyemezo cyasubijwe inyuma.",
+        noReq: "Nta busabe buhari."
+    },
+    en: {
+        navHome: "Home", navAtt: "Teachers' Attendance", navReq: "Access Requests", logout: "Logout",
+        subtitle: "Manage teachers' attendance and access requests to the school",
+        welcome: "Welcome,", overviewHint: "Choose a section from the side menu, or see the summary above.",
+        stTeachers: "Total teachers", stPresent: "Present today", stAbsent: "Absent", stPending: "Pending requests",
+        attTitle: "Teachers' Attendance", today: "Today's date:",
+        tName: "Teacher name", tSubject: "Subject", tTime: "Arrival time", tStatus: "Status",
+        presentLbl: "Present", absentLbl: "Absent",
+        reqTitle: "Access Requests",
+        reqSub: "Review new students and teachers asking to join the school system.",
+        rName: "Applicant", rRole: "Role requested", rReason: "Reason / Class", rAction: "Action",
+        roleStudent: "Student", roleTeacher: "Teacher",
+        approve: "Approve", reject: "Reject", undo: "Undo",
+        approved: "✓ Approved", rejected: "✕ Rejected",
+        msgApproved: "Access approved!", msgRejected: "Request rejected.", msgUndo: "Decision undone.",
+        noReq: "No requests."
+    }
+};
+
+let lang = "rw";
+
+function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+// ---------- Kugenzura ko Head Master yinjiye (guard) ----------
+let me = null;
+try { me = JSON.parse(load("ss_current")); } catch (e) {}
+if (!me || me.role !== "headmaster") {
+    window.location.href = "login.html?role=headmaster";
+}
+
+// ---------- Ubusabe (bubikwa muri localStorage) ----------
+
+
+function getRequests() {
+    let requests = [];
+
+    try {
+        const saved = JSON.parse(load("ss_requests") || "[]");
+        if (Array.isArray(saved)) {
+            // Ubusabe bw'abanyeshuri n'ubundi busabe bubitswe
+            requests = saved.filter(r => r.role !== "teacher");
+        }
+    } catch (e) {}
+
+    try {
+        
+const users = JSON.parse(load("ss_users") || "{}");
+
+const entries = Array.isArray(users)
+    ? users.map((user, index) => [
+        String((user && (user.username || user.id)) || index),
+        user
+    ])
+    : Object.entries(users || {});
+
+entries.forEach(([key, user]) => {
+
+            if (
+                user &&
+                user.role &&
+                user.role.toLowerCase() === "teacher" &&
+                ["pending", "approved", "rejected"].includes(user.status)
+            ) {
+                requests.push({
+                    id: "teacher:" + key,
+                    name: user.name || user.username || "Umwarimu",
+                    role: "teacher",
+                    reason: {
+                        rw: "Yasabye kwiyandikisha nk'umwarimu",
+                        en: "Requested to register as a teacher"
+                    },
+                    status: user.status
+                });
+            }
+        });
+    } catch (e) {
+        console.error("Ikosa mu gusoma konti:", e);
+    }
+
+    return requests;
+}
+
+
+
+function saveRequests(list) {
+    store("ss_requests", JSON.stringify(list));
+}
+
+function deleteRequest(id) {
+    if (!confirm("Urashaka koko gusiba ubu busabe?")) {
+        return;
+    }
+
+    // Gusiba ubusabe busanzwe bubitswe muri ss_requests
+    let requests = [];
+    try {
+        requests = JSON.parse(
+            localStorage.getItem("ss_requests") || "[]"
+        );
+    } catch (error) {
+        console.error("Ikosa mu gusoma ubusabe:", error);
+    }
+
+    const updatedRequests = requests.filter(
+        request => String(request.id) !== String(id)
+    );
+
+    localStorage.setItem(
+        "ss_requests",
+        JSON.stringify(updatedRequests)
+    );
+
+    renderRequests();
+    renderStats();
+
+    toast("Ubusabe busibwe neza.");
+}
+
+
+function saveRequests(list) { store("ss_requests", JSON.stringify(list)); }
+
+// ---------- Toast ----------
+let toastTimer;
+function toast(msg, isErr) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = (isErr ? "err " : "") + "show";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = ""; }, 2500);
+}
+
+// ---------- Ururimi ----------
+function setLang(l) {
+    lang = l;
+    store("lang", l);
+    document.documentElement.lang = l;
+    document.querySelectorAll("[data-i18n]").forEach(function (el) { el.textContent = TEXT[l][el.dataset.i18n]; });
+    document.getElementById("btn-rw").classList.toggle("active", l === "rw");
+    document.getElementById("btn-en").classList.toggle("active", l === "en");
+    document.getElementById("currentDate").textContent = new Date().toLocaleDateString(l === "rw" ? "rw-RW" : "en-GB");
+    renderRequests();
+renderApprovedTeachers();
+renderAttendance();
+renderStats();
+}
+
+// ---------- Guhindura igice ----------
+function openSection(id) {
+    document.querySelectorAll(".section").forEach(function (s) { s.classList.remove("active"); });
+    document.getElementById(id).classList.add("active");
+    if (id === "teacherAttendanceRequests") {
+    renderTeacherAttendanceRequests();
+}
+    document.querySelectorAll(".sidebar .nav[data-page]").forEach(function (b) {
+        b.classList.toggle("active", b.dataset.page === id);
+    });
+}
+
+// ---------- Attendance y'abarimu ----------
+
+// ---------- Attendance y'abarimu ----------
+function todayKey() {
+    const d = new Date(), p = n => String(n).padStart(2, "0");
+    return "ss_attendance_" + d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+
+function getTodayAttendance() {
+    try { return JSON.parse(localStorage.getItem(todayKey()) || "{}"); }
+    catch (e) { return {}; }
+}
+function getTeacherAttendanceRequests() {
+    try {
+        const requests = JSON.parse(
+            localStorage.getItem("ss_teacher_attendance_requests") || "[]"
+        );
+        return Array.isArray(requests) ? requests : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveTeacherAttendanceRequests(requests) {
+    store(
+        "ss_teacher_attendance_requests",
+        JSON.stringify(requests)
+    );
+}
+
+function renderAttendance() {
+    const tbody = document.getElementById("attBody");
+    if (!tbody) return;
+
+    const teachers = getApprovedTeachers();
+    const att = getTodayAttendance();
+
+    if (!teachers.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty">' + TEXT[lang].noTeachers + '</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = teachers.map(function (t) {
+        const rec = att[t.id] || att[t.username];
+        const present = rec && rec.status === "present";
+        return "<tr>" +
+            "<td>" + escapeHtml(t.name) + "</td>" +
+            "<td>" + escapeHtml(t.subject) + "</td>" +
+            "<td>" + (present ? escapeHtml(rec.time) : "-") + "</td>" +
+            '<td><span class="badge ' + (present ? "present" : "absent") + '">' +
+                (present ? TEXT[lang].presentLbl : TEXT[lang].absentLbl) + "</span></td>" +
+            "</tr>";
+    }).join("");
+}
+function renderTeacherAttendanceRequests() {
+    const body = document.getElementById("teacherAttendanceRequestsBody");
+    if (!body) return;
+
+    const requests = getTeacherAttendanceRequests();
+    const d = new Date();
+    const today = d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+
+    const todaysRequests = requests.filter(r => r.date === today);
+
+    if (todaysRequests.length === 0) {
+        body.innerHTML =
+            '<tr><td colspan="4" class="empty">Nta busabe bwa attendance bw\'uyu munsi.</td></tr>';
+        return;
+    }
+
+    body.innerHTML = "";
+
+    todaysRequests.forEach(function (r) {
+        const tr = document.createElement("tr");
+        const name = document.createElement("td");
+        const date = document.createElement("td");
+        const status = document.createElement("td");
+        const actions = document.createElement("td");
+
+        name.textContent = r.name || r.username || "Umwarimu";
+        date.textContent = r.date;
+
+        status.textContent =
+            r.status === "approved" ? "Byemejwe" :
+            r.status === "rejected" ? "Byanzwe" :
+            "Bitegereje";
+
+        if (r.status === "pending") {
+            actions.appendChild(makeBtn("btn-approve", "Emeza", function () {
+                decideTeacherAttendanceRequest(r.id, "approved");
+            }));
+
+            actions.appendChild(makeBtn("btn-reject", "Anga", function () {
+                decideTeacherAttendanceRequest(r.id, "rejected");
+            }));
+        } else {
+            actions.textContent = "Icyemezo cyafashwe";
+        }
+
+        tr.append(name, date, status, actions);
+        body.appendChild(tr);
+    });
+}
+
+function decideTeacherAttendanceRequest(id, status) {
+    const requests = getTeacherAttendanceRequests();
+
+    const request = requests.find(
+        r => String(r.id) === String(id)
+    );
+
+    if (!request) {
+        toast("Ubusabe ntibwabonetse.", true);
+        return;
+    }
+
+    request.status = status;
+    request.decidedAt = new Date().toISOString();
+
+    // Bika icyemezo cya Head Master
+    saveTeacherAttendanceRequests(requests);
+
+    // Iyo request yemerewe, umwarimu ahita aba Present
+    if (status === "approved") {
+    const attendanceKey = "ss_attendance_" + request.date;
+    let attendance = {};
+
+    try {
+        attendance = JSON.parse(
+            localStorage.getItem(attendanceKey) || "{}"
+        );
+    } catch (e) {
+        attendance = {};
+    }
+
+    // Shaka umwarimu muri konti zemewe
+    const teacher = getApprovedTeachers().find(t =>
+        String(t.username) === String(request.username)
+    );
+
+    const teacherId = teacher
+        ? teacher.id
+        : request.username;
+
+    const record = {
+        status: "present",
+        present: true,
+        name: request.name || request.username,
+        date: request.date,
+        time: new Date().toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit"
+        }),
+        approvedAt: new Date().toISOString()
+    };
+
+    // Bika ukoresheje ID na username
+    attendance[teacherId] = record;
+    attendance[request.username] = record;
+
+    store(attendanceKey, JSON.stringify(attendance));
+}
+
+    renderTeacherAttendanceRequests();
+    renderAttendance();
+    renderStats();
+
+    toast(
+        status === "approved"
+            ? "Request yemejwe. Umwarimu yashyizwe kuri Present."
+            : "Request yanzwe."
+    );
+}
+// ---------- Ubusabe ----------
+
+function renderRequests() {
+    const body = document.getElementById("reqBody");
+    if (!body) return;
+
+    const list = getRequests();
+    body.innerHTML = "";
+
+    if (!list.length) {
+        body.innerHTML =
+            '<tr><td colspan="4" class="empty">' +
+            TEXT[lang].noReq +
+            "</td></tr>";
+        return;
+    }
+
+    list.forEach(function (r) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = "<td></td><td></td><td></td><td></td>";
+
+        tr.cells[0].textContent = r.name;
+
+        const role = document.createElement("span");
+        role.className = "badge " + r.role;
+        role.textContent =
+            r.role === "student"
+                ? TEXT[lang].roleStudent
+                : TEXT[lang].roleTeacher;
+        tr.cells[1].appendChild(role);
+
+        tr.cells[2].textContent =
+            r.reason && r.reason[lang]
+                ? r.reason[lang]
+                : "";
+
+        const cell = tr.cells[3];
+
+        if (r.status === "pending") {
+            cell.appendChild(
+                makeBtn("btn-approve", TEXT[lang].approve, function () {
+                    decide(r.id, "approved");
+                })
+            );
+
+            cell.appendChild(
+                makeBtn("btn-reject", TEXT[lang].reject, function () {
+                    decide(r.id, "rejected");
+                })
+            );
+        } else {
+            const s = document.createElement("span");
+            s.className =
+                r.status === "approved" ? "ok-text" : "no-text";
+            s.textContent =
+                (r.status === "approved"
+                    ? TEXT[lang].approved
+                    : TEXT[lang].rejected) + "  ";
+
+            cell.appendChild(s);
+
+            cell.appendChild(
+                makeBtn("btn-undo", TEXT[lang].undo, function () {
+                    decide(r.id, "pending");
+                })
+            );
+        }
+
+        // Button yo gusiba ubusabe
+        cell.appendChild(
+            makeBtn("btn-delete", "Gusiba", function () {
+                deleteRequest(r.id);
+            })
+        );
+
+        body.appendChild(tr);
+    });
+}
+
+function makeBtn(cls, label, fn) {
+    const b = document.createElement("button");
+    b.className = "btn " + cls;
+    b.textContent = label;
+    b.addEventListener("click", fn);
+    return b;
+}
+
+function decide(id, status) {
+    if (typeof id === "string" && id.startsWith("teacher:")) {
+        const userKey = id.substring("teacher:".length);
+
+        try {
+            const users = JSON.parse(load("ss_users") || "{}");
+
+            if (!users[userKey]) {
+                toast("Konti y'umwarimu ntiyabonetse.", true);
+                return;
+            }
+
+            users[userKey].status = status;
+            store("ss_users", JSON.stringify(users));
+        } catch (e) {
+            toast("Habaye ikibazo mu guhindura konti.", true);
+            return;
+        }
+    } else {
+        const list = getRequests();
+        const request = list.find(r => r.id === id);
+
+        if (request) {
+            request.status = status;
+            saveRequests(list);
+        }
+    }
+
+    renderRequests();
+    renderStats();
+
+    if (status === "approved") {
+        toast(TEXT[lang].msgApproved);
+    } else if (status === "rejected") {
+        toast(TEXT[lang].msgRejected, true);
+    } else {
+        toast(TEXT[lang].msgUndo);
+    }
+}
+
+
+// ---------- Incamake (stats) ----------
+function renderStats() {
+    const teachers = getApprovedTeachers();
+    const attendance = getTodayAttendance();
+
+    const present = teachers.filter(function (teacher) {
+        const record =
+            attendance[teacher.id] ||
+            attendance[teacher.username];
+
+        return record && record.status === "present";
+    }).length;
+
+    const pending = getRequests().filter(function (request) {
+        return request.status === "pending";
+    }).length;
+
+    document.getElementById("stTeachers").textContent =
+        teachers.length;
+
+    document.getElementById("stPresent").textContent =
+        present;
+
+    document.getElementById("stAbsent").textContent =
+        teachers.length - present;
+
+    document.getElementById("stPending").textContent =
+        pending;
+
+    const badge = document.getElementById("pendingBadge");
+    badge.textContent = pending;
+    badge.classList.toggle("zero", pending === 0);
+}
+// ---------- Sohoka ----------
+function logout() {
+    try { localStorage.removeItem("ss_current"); } catch (e) {}
+    window.location.href = "login.html?role=headmaster";
+}
+
+// ---------- Gutangira ----------
+if (me) {
+    document.getElementById("hmName").textContent = me.name;
+    document.getElementById("whoAmI").textContent = me.name + " (@" + me.username + ")";
+    setLang(load("lang") === "en" ? "en" : "rw");
+}
+</script>
+</body>
+</html>
